@@ -14,13 +14,11 @@ class ProductSeeder extends Seeder
      */
     public function run(): void
     {
-        // Get Chart of Accounts for linking
-        $persediaanBahanBaku = ChartOfAccount::where('code', '1-1310')->first();
-        $persediaanBarangJadi = ChartOfAccount::where('code', '1-1330')->first();
-        $hppRoti = ChartOfAccount::where('code', '5-1100')->first();
-        $hppKue = ChartOfAccount::where('code', '5-1200')->first();
-        $penjualanRoti = ChartOfAccount::where('code', '4-1100')->first();
-        $penjualanKue = ChartOfAccount::where('code', '4-1200')->first();
+        // Get Chart of Accounts for linking (SIMPLIFIED VERSION)
+        $persediaanBahanBaku = ChartOfAccount::where('code', '1-1400')->first();
+        $persediaanBarangJadi = ChartOfAccount::where('code', '1-1500')->first();
+        $hpp = ChartOfAccount::where('code', '5-1000')->first();
+        $penjualan = ChartOfAccount::where('code', '4-1000')->first();
 
         // ============================================
         // RAW MATERIALS (Bahan Baku)
@@ -45,7 +43,7 @@ class ProductSeeder extends Seeder
             'minimum_stock' => 25,
             'maximum_stock' => 200,
             'inventory_account_id' => $persediaanBahanBaku->id,
-            'expense_account_id' => $hppRoti->id,
+            'expense_account_id' => $hpp->id,
             'is_active' => true,
             'barcode' => '8991234567890',
         ]);
@@ -69,7 +67,7 @@ class ProductSeeder extends Seeder
             'minimum_stock' => 10,
             'maximum_stock' => 100,
             'inventory_account_id' => $persediaanBahanBaku->id,
-            'expense_account_id' => $hppKue->id,
+            'expense_account_id' => $hpp->id,
             'is_active' => true,
         ]);
 
@@ -92,7 +90,7 @@ class ProductSeeder extends Seeder
             'minimum_stock' => 5,
             'maximum_stock' => 50,
             'inventory_account_id' => $persediaanBahanBaku->id,
-            'expense_account_id' => $hppRoti->id,
+            'expense_account_id' => $hpp->id,
             'is_active' => true,
         ]);
 
@@ -115,7 +113,7 @@ class ProductSeeder extends Seeder
             'minimum_stock' => 25,
             'maximum_stock' => 150,
             'inventory_account_id' => $persediaanBahanBaku->id,
-            'expense_account_id' => $hppKue->id,
+            'expense_account_id' => $hpp->id,
             'is_active' => true,
         ]);
 
@@ -138,7 +136,7 @@ class ProductSeeder extends Seeder
             'minimum_stock' => 500,
             'maximum_stock' => 5000,
             'inventory_account_id' => $persediaanBahanBaku->id,
-            'expense_account_id' => $hppRoti->id,
+            'expense_account_id' => $hpp->id,
             'is_active' => true,
         ]);
 
@@ -165,8 +163,8 @@ class ProductSeeder extends Seeder
             'minimum_stock' => 20,
             'maximum_stock' => 100,
             'inventory_account_id' => $persediaanBarangJadi->id,
-            'expense_account_id' => $hppRoti->id,
-            'income_account_id' => $penjualanRoti->id,
+            'expense_account_id' => $hpp->id,
+            'income_account_id' => $penjualan->id,
             'is_active' => true,
             'barcode' => '8999123456001',
         ]);
@@ -190,8 +188,8 @@ class ProductSeeder extends Seeder
             'minimum_stock' => 15,
             'maximum_stock' => 80,
             'inventory_account_id' => $persediaanBarangJadi->id,
-            'expense_account_id' => $hppRoti->id,
-            'income_account_id' => $penjualanRoti->id,
+            'expense_account_id' => $hpp->id,
+            'income_account_id' => $penjualan->id,
             'is_active' => true,
             'barcode' => '8999123456002',
         ]);
@@ -215,8 +213,8 @@ class ProductSeeder extends Seeder
             'minimum_stock' => 10,
             'maximum_stock' => 50,
             'inventory_account_id' => $persediaanBarangJadi->id,
-            'expense_account_id' => $hppKue->id,
-            'income_account_id' => $penjualanKue->id,
+            'expense_account_id' => $hpp->id,
+            'income_account_id' => $penjualan->id,
             'is_active' => true,
         ]);
 

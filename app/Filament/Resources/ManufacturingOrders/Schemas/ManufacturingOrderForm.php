@@ -21,21 +21,21 @@ class ManufacturingOrderForm
             ->components([
                 // Production Information
                 DatePicker::make('production_date')
-                    ->label('Production Date')
+                    ->label('Tanggal Produksi')
                     ->required()
                     ->default(now())
                     ->native(false),
 
                 TextInput::make('mo_number')
-                    ->label('MO Number')
+                    ->label('No. Order Produksi')
                     ->disabled()
                     ->dehydrated(false)
-                    ->placeholder('Auto-generated')
+                    ->placeholder('Otomatis')
                     ->columnSpan(2),
 
                 // Product & BOM Selection
                 Select::make('product_id')
-                    ->label('Product to Manufacture')
+                    ->label('Produk yang Akan Dibuat')
                     ->required()
                     ->searchable()
                     ->preload()
@@ -64,11 +64,11 @@ class ManufacturingOrderForm
                             }
                         }
                     })
-                    ->helperText('Only finished goods with active BOM are shown')
+                    ->helperText('Hanya produk jadi yang memiliki resep aktif')
                     ->columnSpan(2),
 
                 Select::make('bom_header_id')
-                    ->label('BOM / Recipe')
+                    ->label('Resep / BOM')
                     ->required()
                     ->searchable()
                     ->options(function (callable $get) {
@@ -81,26 +81,26 @@ class ManufacturingOrderForm
                             ->where('is_active', true)
                             ->get()
                             ->mapWithKeys(fn($bom) => [
-                                $bom->id => "{$bom->bom_code} (v{$bom->version}) - Yield: " . number_format((float) $bom->quantity_produced, 0)
+                                $bom->id => "{$bom->bom_code} (v{$bom->version}) - Hasil: " . number_format((float) $bom->quantity_produced, 0)
                             ]);
                     }),
 
                 // Quantity Planning
                 TextInput::make('quantity_to_produce')
-                    ->label('Quantity to Produce')
+                    ->label('Jumlah Target Produksi')
                     ->required()
                     ->numeric()
                     ->minValue(1)
-                    ->suffix('units')
+                    ->suffix('unit')
                     ->live()
-                    ->helperText('Target production quantity'),
+                    ->helperText('Target jumlah produksi'),
 
                 DatePicker::make('planned_start_date')
-                    ->label('Planned Start')
+                    ->label('Rencana Mulai')
                     ->native(false),
 
                 DatePicker::make('planned_finish_date')
-                    ->label('Planned Finish')
+                    ->label('Rencana Selesai')
                     ->native(false),
 
                 // Supervisor
@@ -113,29 +113,31 @@ class ManufacturingOrderForm
 
                 // Production Results (visible after start)
                 TextInput::make('quantity_produced')
-                    ->label('Actual Qty Produced')
+                    ->label('Jumlah Aktual Diproduksi')
                     ->numeric()
                     ->default(0)
-                    ->suffix('units')
+                    ->suffix('unit')
                     ->disabled(fn($record) => !$record || $record->status === 'draft'),
 
                 TextInput::make('quantity_scrapped')
-                    ->label('Qty Scrapped/Reject')
+                    ->label('Jumlah Reject/Gagal')
                     ->numeric()
                     ->default(0)
-                    ->suffix('units')
+                    ->suffix('unit')
+                    ->helperText('Unit yang cacat atau ditolak')
                     ->disabled(fn($record) => !$record || $record->status === 'draft'),
 
                 // Costing (visible after production)
                 TextInput::make('labor_cost')
-                    ->label('Labor Cost')
+                    ->label('Biaya Tenaga Kerja')
                     ->numeric()
                     ->default(0)
                     ->prefix('Rp')
+                    ->helperText('Total biaya tenaga kerja untuk produksi ini')
                     ->disabled(fn($record) => !$record || $record->status !== 'in_progress'),
 
                 TextInput::make('overhead_cost')
-                    ->label('Overhead Cost')
+                    ->label('Biaya Overhead')
                     ->numeric()
                     ->default(0)
                     ->prefix('Rp')
@@ -144,30 +146,32 @@ class ManufacturingOrderForm
 
                 // Notes
                 Textarea::make('notes')
-                    ->label('Production Notes')
+                    ->label('Catatan Produksi')
                     ->rows(3)
+                    ->placeholder('Catatan atau instruksi khusus untuk produksi ini...')
                     ->columnSpanFull(),
 
                 Textarea::make('completion_notes')
-                    ->label('Completion Notes')
+                    ->label('Catatan Penyelesaian')
                     ->rows(3)
+                    ->placeholder('Hasil, kendala, atau catatan saat produksi selesai...')
                     ->columnSpanFull()
                     ->visible(fn($record) => $record && $record->status === 'in_progress'),
 
                 // Summary (Read-only, visible after confirm)
                 Placeholder::make('material_cost_display')
-                    ->label('Material Cost')
-                    ->content(fn($record) => $record ? 'Rp ' . number_format($record->material_cost, 2) : '-')
+                    ->label('Biaya Bahan Baku')
+                    ->content(fn($record) => $record ? 'Rp ' . number_format((float) $record->material_cost, 0) : '-')
                     ->visible(fn($record) => $record && $record->status !== 'draft'),
 
                 Placeholder::make('total_cost_display')
                     ->label('Total HPP')
-                    ->content(fn($record) => $record ? 'Rp ' . number_format($record->material_cost + $record->labor_cost + $record->overhead_cost, 2) : '-')
+                    ->content(fn($record) => $record ? 'Rp ' . number_format((float) ($record->material_cost + $record->labor_cost + $record->overhead_cost), 0) : '-')
                     ->visible(fn($record) => $record && $record->status !== 'draft'),
 
                 Placeholder::make('cost_per_unit_display')
                     ->label('HPP per Unit')
-                    ->content(fn($record) => $record && $record->cost_per_unit ? 'Rp ' . number_format($record->cost_per_unit, 2) : '-')
+                    ->content(fn($record) => $record && $record->cost_per_unit ? 'Rp ' . number_format((float) $record->cost_per_unit, 0) : '-')
                     ->visible(fn($record) => $record && $record->status === 'completed'),
             ]);
     }

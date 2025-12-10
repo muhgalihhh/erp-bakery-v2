@@ -27,11 +27,15 @@ class JournalEntryResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'transaction_number';
 
-    protected static ?string $navigationLabel = 'Journal Entries';
+    protected static ?string $navigationLabel = 'Jurnal Umum';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Accounting';
+    protected static ?string $modelLabel = 'Jurnal Umum';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?string $pluralModelLabel = 'Jurnal Umum';
+
+    protected static string|UnitEnum|null $navigationGroup = '💰 Akuntansi';
+
+    protected static ?int $navigationSort = 2;
 
     public static function form(Schema $schema): Schema
     {

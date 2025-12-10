@@ -20,54 +20,92 @@ class BomHeadersTable
         return $table
             ->columns([
                 TextColumn::make('product.name')
-                    ->searchable(),
+                    ->label('Produk Hasil')
+                    ->searchable()
+                    ->sortable()
+                    ->weight('bold'),
+
                 TextColumn::make('bom_code')
-                    ->searchable(),
+                    ->label('Kode Resep')
+                    ->searchable()
+                    ->sortable()
+                    ->copyable(),
+
                 TextColumn::make('version')
-                    ->searchable(),
+                    ->label('Versi')
+                    ->searchable()
+                    ->sortable()
+                    ->badge()
+                    ->color('info'),
+
                 TextColumn::make('quantity_produced')
-                    ->label('Qty Produced')
+                    ->label('Hasil')
                     ->formatStateUsing(fn($state, $record) => static::formatQuantity($state) . ' ' . ($record->product?->uom_stock ?? 'pcs'))
                     ->alignEnd()
                     ->sortable(),
+
                 IconColumn::make('is_active')
-                    ->boolean(),
+                    ->label('Aktif')
+                    ->boolean()
+                    ->trueIcon('heroicon-o-check-circle')
+                    ->falseIcon('heroicon-o-x-circle')
+                    ->trueColor('success')
+                    ->falseColor('danger'),
+
                 IconColumn::make('is_default')
-                    ->boolean(),
+                    ->label('Utama')
+                    ->boolean()
+                    ->trueIcon('heroicon-o-star')
+                    ->falseIcon('heroicon-o-star')
+                    ->trueColor('warning')
+                    ->falseColor('gray'),
+
                 TextColumn::make('production_time_minutes')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('created_by')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('updated_by')
-                    ->numeric()
-                    ->sortable(),
+                    ->label('Waktu Produksi')
+                    ->formatStateUsing(fn($state) => $state ? $state . ' menit' : '-')
+                    ->sortable()
+                    ->toggleable(),
+
                 TextColumn::make('created_at')
-                    ->dateTime()
+                    ->label('Dibuat')
+                    ->dateTime('d M Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
+
                 TextColumn::make('updated_at')
-                    ->dateTime()
+                    ->label('Diperbarui')
+                    ->dateTime('d M Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
+
                 TextColumn::make('deleted_at')
-                    ->dateTime()
+                    ->label('Dihapus')
+                    ->dateTime('d M Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                TrashedFilter::make(),
+                TrashedFilter::make()
+                    ->label('Status Penghapusan')
+                    ->placeholder('Semua')
+                    ->trueLabel('Hanya yang Dihapus')
+                    ->falseLabel('Tanpa yang Dihapus')
+                    ->native(false),
             ])
-            ->recordActions([
-                ViewAction::make(),
-                EditAction::make(),
+            ->actions([
+                ViewAction::make()
+                    ->label('Lihat'),
+                EditAction::make()
+                    ->label('Ubah'),
             ])
-            ->toolbarActions([
+            ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                    ForceDeleteBulkAction::make(),
-                    RestoreBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->label('Hapus'),
+                    ForceDeleteBulkAction::make()
+                        ->label('Hapus Permanen'),
+                    RestoreBulkAction::make()
+                        ->label('Pulihkan'),
                 ]),
             ]);
     }

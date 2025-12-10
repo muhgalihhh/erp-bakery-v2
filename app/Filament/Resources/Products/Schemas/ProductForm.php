@@ -17,12 +17,12 @@ class ProductForm
     {
         return $schema
             ->components([
-                Tabs::make('Product Information')
+                Tabs::make('Informasi Produk')
                     ->tabs([
                         // Tab 1: Basic Info
-                        Tabs\Tab::make('Basic Information')
+                        Tabs\Tab::make('Informasi Dasar')
                             ->schema([
-                                Fieldset::make('Product Identity')
+                                Fieldset::make('Identitas Produk')
                                     ->schema([
                                         TextInput::make('sku')
                                             ->label('SKU')
@@ -30,17 +30,18 @@ class ProductForm
                                             ->unique(ignoreRecord: true)
                                             ->maxLength(255)
                                             ->placeholder('TP-001, RT-TAWAR-001')
+                                            ->helperText('Kode unik produk')
                                             ->columnSpan(1),
 
                                         TextInput::make('name')
-                                            ->label('Product Name')
+                                            ->label('Nama Produk')
                                             ->required()
                                             ->maxLength(255)
                                             ->placeholder('Tepung Segitiga Biru 1Kg')
                                             ->columnSpan(2),
 
                                         Select::make('type')
-                                            ->label('Product Type')
+                                            ->label('Tipe Produk')
                                             ->required()
                                             ->options([
                                                 'raw' => 'Raw Material (Bahan Baku)',
@@ -51,50 +52,52 @@ class ProductForm
                                             ])
                                             ->native(false)
                                             ->searchable()
-                                            ->helperText('Raw=Tepung, WIP=Adonan, Finished=Roti')
+                                            ->helperText('Raw=Tepung, WIP=Adonan, Finished=Roti, Consumable=Gas/Listrik')
                                             ->columnSpan(2),
 
                                         TextInput::make('barcode')
                                             ->label('Barcode')
                                             ->maxLength(255)
                                             ->placeholder('8991234567890')
+                                            ->helperText('Kode barcode produk (opsional)')
                                             ->columnSpan(1),
                                     ])
                                     ->columns(3),
 
-                                Fieldset::make('Description & Image')
+                                Fieldset::make('Deskripsi & Gambar')
                                     ->schema([
                                         Textarea::make('description')
-                                            ->label('Description')
+                                            ->label('Deskripsi')
                                             ->rows(3)
                                             ->placeholder('Deskripsi detail produk...')
                                             ->columnSpan(2),
 
                                         FileUpload::make('image_url')
-                                            ->label('Product Image')
+                                            ->label('Gambar Produk')
                                             ->image()
                                             ->imageEditor()
                                             ->maxSize(2048)
+                                            ->helperText('Maks 2MB')
                                             ->columnSpan(1),
                                     ])
                                     ->columns(3),
 
-                                Fieldset::make('Product Flags')
+                                Fieldset::make('Status Produk')
                                     ->schema([
                                         Toggle::make('is_purchasable')
-                                            ->label('Can be Purchased?')
+                                            ->label('Bisa Dibeli?')
                                             ->default(false)
                                             ->helperText('Centang jika produk ini DIBELI dari supplier')
                                             ->inline(false),
 
                                         Toggle::make('is_sellable')
-                                            ->label('Can be Sold?')
+                                            ->label('Bisa Dijual?')
                                             ->default(false)
                                             ->helperText('Centang jika produk ini DIJUAL ke customer')
                                             ->inline(false),
 
                                         Toggle::make('is_active')
-                                            ->label('Active')
+                                            ->label('Aktif')
                                             ->default(true)
                                             ->helperText('Produk masih aktif digunakan?')
                                             ->inline(false),
@@ -103,26 +106,26 @@ class ProductForm
                             ]),
 
                         // Tab 2: Unit of Measure
-                        Tabs\Tab::make('Unit of Measure (UoM)')
+                        Tabs\Tab::make('Satuan (UoM)')
                             ->schema([
-                                Fieldset::make('Units')
+                                Fieldset::make('Satuan Produk')
                                     ->schema([
                                         TextInput::make('uom_purchase')
-                                            ->label('Purchase Unit')
+                                            ->label('Satuan Pembelian')
                                             ->required()
                                             ->default('pcs')
                                             ->placeholder('Sak, Karton, Kg')
                                             ->helperText('Satuan saat BELI dari supplier'),
 
                                         TextInput::make('uom_stock')
-                                            ->label('Stock Unit')
+                                            ->label('Satuan Stok')
                                             ->required()
                                             ->default('pcs')
                                             ->placeholder('Kg, Liter, Pcs')
                                             ->helperText('Satuan PENYIMPANAN di gudang'),
 
                                         TextInput::make('uom_usage')
-                                            ->label('Usage Unit (Recipe)')
+                                            ->label('Satuan Pemakaian')
                                             ->required()
                                             ->default('pcs')
                                             ->placeholder('Gram, ml, Pcs')
@@ -130,10 +133,10 @@ class ProductForm
                                     ])
                                     ->columns(3),
 
-                                Fieldset::make('Conversion Rates')
+                                Fieldset::make('Konversi Satuan')
                                     ->schema([
                                         TextInput::make('conversion_purchase_to_stock')
-                                            ->label('Purchase → Stock Conversion')
+                                            ->label('Pembelian → Stok')
                                             ->required()
                                             ->numeric()
                                             ->default(1)
@@ -142,7 +145,7 @@ class ProductForm
                                             ->helperText('Contoh: 1 Sak = 25 Kg → isi 25'),
 
                                         TextInput::make('conversion_stock_to_usage')
-                                            ->label('Stock → Usage Conversion')
+                                            ->label('Stok → Pemakaian')
                                             ->required()
                                             ->numeric()
                                             ->default(1)
@@ -154,20 +157,20 @@ class ProductForm
                             ]),
 
                         // Tab 3: Pricing & Cost
-                        Tabs\Tab::make('Pricing & Inventory')
+                        Tabs\Tab::make('Harga & Stok')
                             ->schema([
-                                Fieldset::make('Pricing')
+                                Fieldset::make('Harga')
                                     ->schema([
                                         TextInput::make('purchase_price')
-                                            ->label('Purchase Price')
+                                            ->label('Harga Beli')
                                             ->required()
                                             ->numeric()
                                             ->default(0)
                                             ->prefix('Rp')
-                                            ->helperText('Harga beli dari supplier (per UoM Purchase)'),
+                                            ->helperText('Harga beli dari supplier (per Satuan Pembelian)'),
 
                                         TextInput::make('selling_price')
-                                            ->label('Selling Price')
+                                            ->label('Harga Jual')
                                             ->required()
                                             ->numeric()
                                             ->default(0)
@@ -175,7 +178,7 @@ class ProductForm
                                             ->helperText('Harga jual ke customer'),
 
                                         TextInput::make('standard_cost')
-                                            ->label('Standard Cost (HPP)')
+                                            ->label('HPP Standard')
                                             ->required()
                                             ->numeric()
                                             ->default(0)
@@ -184,59 +187,60 @@ class ProductForm
                                     ])
                                     ->columns(3),
 
-                                Fieldset::make('Inventory Control')
+                                Fieldset::make('Kontrol Stok')
                                     ->schema([
                                         TextInput::make('current_stock')
-                                            ->label('Current Stock')
+                                            ->label('Stok Saat Ini')
                                             ->required()
                                             ->numeric()
                                             ->default(0)
-                                            ->suffix('units')
-                                            ->helperText('Stok saat ini (dalam UoM Stock)'),
+                                            ->suffix('unit')
+                                            ->helperText('Stok saat ini (dalam Satuan Stok)'),
 
                                         TextInput::make('minimum_stock')
-                                            ->label('Minimum Stock (Reorder Level)')
+                                            ->label('Stok Minimum')
                                             ->required()
                                             ->numeric()
                                             ->default(0)
-                                            ->suffix('units')
-                                            ->helperText('Jika stok <= ini, perlu reorder'),
+                                            ->suffix('unit')
+                                            ->helperText('Jika stok <= ini, perlu reorder dari supplier'),
 
                                         TextInput::make('maximum_stock')
-                                            ->label('Maximum Stock')
+                                            ->label('Stok Maksimum')
                                             ->required()
                                             ->numeric()
                                             ->default(0)
-                                            ->suffix('units'),
+                                            ->suffix('unit')
+                                            ->helperText('Batas atas stok gudang'),
                                     ])
                                     ->columns(3),
                             ]),
 
                         // Tab 4: Accounting Integration
-                        Tabs\Tab::make('Accounting Integration')
+                        Tabs\Tab::make('Akun Akuntansi')
                             ->schema([
-                                Fieldset::make('Accounting Integration')
+                                Fieldset::make('Keterkaitan Akun')
                                     ->schema([
                                         Select::make('income_account_id')
-                                            ->label('Income Account (Pendapatan)')
+                                            ->label('Akun Pendapatan')
                                             ->relationship('incomeAccount', 'name', fn($query) => $query->where('type', 'revenue'))
                                             ->searchable()
                                             ->preload()
-                                            ->helperText('Akun untuk pendapatan penjualan (misal: 4-1100 Penjualan Roti)'),
+                                            ->helperText('Akun untuk pendapatan penjualan (misal: 4-1000 Pendapatan Penjualan)'),
 
                                         Select::make('expense_account_id')
-                                            ->label('Expense Account (HPP)')
+                                            ->label('Akun HPP')
                                             ->relationship('expenseAccount', 'name', fn($query) => $query->where('type', 'expense'))
                                             ->searchable()
                                             ->preload()
-                                            ->helperText('Akun untuk Harga Pokok Penjualan (misal: 5-1100 HPP Roti)'),
+                                            ->helperText('Akun untuk Harga Pokok Penjualan (misal: 5-1000 HPP)'),
 
                                         Select::make('inventory_account_id')
-                                            ->label('Inventory Account (Persediaan)')
+                                            ->label('Akun Persediaan')
                                             ->relationship('inventoryAccount', 'name', fn($query) => $query->where('type', 'asset'))
                                             ->searchable()
                                             ->preload()
-                                            ->helperText('Akun aset persediaan (misal: 1-1310 Persediaan Bahan Baku)'),
+                                            ->helperText('Akun aset persediaan (1-1400 Bahan Baku atau 1-1500 Barang Jadi)'),
                                     ]),
                             ]),
                     ])

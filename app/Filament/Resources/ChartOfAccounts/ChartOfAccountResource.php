@@ -27,7 +27,11 @@ class ChartOfAccountResource extends Resource
 
     protected static ?string $navigationLabel = 'Akun Keuangan';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Akuntansi';
+    protected static ?string $modelLabel = 'Akun Keuangan';
+
+    protected static ?string $pluralModelLabel = 'Akun Keuangan';
+
+    protected static string|UnitEnum|null $navigationGroup = '💰 Akuntansi';
 
     protected static ?int $navigationSort = 1;
 

@@ -219,11 +219,37 @@ class ManufacturingOrder extends Model
                     $material->consumed_at = now();
                     $material->save();
                     $totalMaterialCost += $material->total_cost;
+
+                    // **TRACK STOCK MOVEMENT OUT (konsumsi bahan baku)**
+                    \App\Models\StockMovement::create([
+                        'type' => \App\Models\StockMovement::TYPE_OUT,
+                        'reference_type' => self::class,
+                        'reference_id' => $this->id,
+                        'reference_number' => $this->mo_number,
+                        'product_id' => $material->product_id,
+                        'quantity' => $material->actual_quantity, // Dalam stock UOM
+                        'uom' => $material->product->uom_stock,
+                        'balance_after' => $material->product->fresh()->current_stock,
+                        'notes' => "Konsumsi untuk produksi {$this->product->name}",
+                    ]);
                 }
             }
 
             // 2. Increase finished goods
             $this->product->increaseStock($this->quantity_produced, 'stock');
+
+            // **TRACK STOCK MOVEMENT IN (hasil produksi)**
+            \App\Models\StockMovement::create([
+                'type' => \App\Models\StockMovement::TYPE_IN,
+                'reference_type' => self::class,
+                'reference_id' => $this->id,
+                'reference_number' => $this->mo_number,
+                'product_id' => $this->product_id,
+                'quantity' => $this->quantity_produced, // Dalam stock UOM
+                'uom' => $this->product->uom_stock,
+                'balance_after' => $this->product->fresh()->current_stock,
+                'notes' => "Hasil produksi dari MO {$this->mo_number}",
+            ]);
 
             // 3. Calculate cost
             $this->material_cost = $totalMaterialCost;
@@ -270,7 +296,7 @@ class ManufacturingOrder extends Model
             // Total cost yang ditransfer = hanya material cost
             // Labor & overhead sudah dibayar tunai/accrued, jadi tidak perlu dijurnal lagi
             // HPP total tetap dicatat di MO untuk tracking, tapi journal hanya untuk material transfer
-            
+
             $postings[] = [
                 'account_id' => $this->product->inventory_account_id,
                 'debit' => $this->material_cost, // Hanya material cost

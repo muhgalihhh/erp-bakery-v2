@@ -60,8 +60,8 @@ class GoodReceiptsTable
                     })
                     ->formatStateUsing(fn(string $state): string => match ($state) {
                         'draft' => 'DRAFT',
-                        'confirmed' => 'CONFIRMED',
-                        'cancelled' => 'CANCELLED',
+                        'confirmed' => 'DIKONFIRMASI',
+                        'cancelled' => 'DIBATALKAN',
                         default => strtoupper($state),
                     })
                     ->sortable(),
@@ -85,7 +85,7 @@ class GoodReceiptsTable
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('updated_at')
-                    ->label('Diupdate')
+                    ->label('Diperbarui')
                     ->dateTime('d M Y, H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -95,26 +95,36 @@ class GoodReceiptsTable
                     ->label('Status')
                     ->options([
                         'draft' => 'Draft',
-                        'confirmed' => 'Confirmed',
-                        'cancelled' => 'Cancelled',
+                        'confirmed' => 'Dikonfirmasi',
+                        'cancelled' => 'Dibatalkan',
                     ])
                     ->multiple(),
 
-                TrashedFilter::make(),
+                TrashedFilter::make()
+                    ->label('Status Penghapusan')
+                    ->placeholder('Semua')
+                    ->trueLabel('Hanya yang Dihapus')
+                    ->falseLabel('Tanpa yang Dihapus')
+                    ->native(false),
             ])
-            ->recordActions([
-                ViewAction::make(),
+            ->actions([
+                ViewAction::make()
+                    ->label('Lihat'),
                 EditAction::make()
+                    ->label('Ubah')
                     ->visible(
                         fn(GoodReceipt $record): bool =>
                         $record->status === GoodReceipt::STATUS_DRAFT
                     ),
             ])
-            ->toolbarActions([
+            ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                    ForceDeleteBulkAction::make(),
-                    RestoreBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->label('Hapus'),
+                    ForceDeleteBulkAction::make()
+                        ->label('Hapus Permanen'),
+                    RestoreBulkAction::make()
+                        ->label('Pulihkan'),
                 ]),
             ])
             ->defaultSort('receipt_date', 'desc');

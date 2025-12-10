@@ -26,20 +26,23 @@ class ProductsTable
                     ->label('SKU')
                     ->searchable()
                     ->sortable()
-                    ->copyable(),
+                    ->copyable()
+                    ->weight('bold'),
 
                 ImageColumn::make('image_url')
-                    ->label('Image')
+                    ->label('Gambar')
                     ->circular()
                     ->defaultImageUrl(url('/images/no-image.png')),
 
                 TextColumn::make('name')
+                    ->label('Nama Produk')
                     ->searchable()
                     ->sortable()
                     ->description(fn($record) => $record->description)
                     ->limit(50),
 
                 TextColumn::make('type')
+                    ->label('Tipe')
                     ->badge()
                     ->colors([
                         'success' => 'finished',
@@ -58,7 +61,7 @@ class ProductsTable
                     }),
 
                 IconColumn::make('is_sellable')
-                    ->label('Sellable?')
+                    ->label('Dijual?')
                     ->boolean()
                     ->trueIcon('heroicon-o-check-circle')
                     ->falseIcon('heroicon-o-x-circle')
@@ -66,7 +69,7 @@ class ProductsTable
                     ->falseColor('gray'),
 
                 IconColumn::make('is_purchasable')
-                    ->label('Purchasable?')
+                    ->label('Dibeli?')
                     ->boolean()
                     ->trueIcon('heroicon-o-check-circle')
                     ->falseIcon('heroicon-o-x-circle')
@@ -74,49 +77,55 @@ class ProductsTable
                     ->falseColor('gray'),
 
                 TextColumn::make('selling_price')
-                    ->label('Selling Price')
+                    ->label('Harga Jual')
                     ->money('IDR')
                     ->sortable(),
 
                 TextColumn::make('purchase_price')
-                    ->label('Purchase Price')
+                    ->label('Harga Beli')
                     ->money('IDR')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('current_stock')
-                    ->label('Stock')
+                    ->label('Stok')
                     ->formatStateUsing(fn($state, $record) => static::formatQuantity($state) . ' ' . $record->uom_stock)
                     ->sortable()
                     ->alignEnd()
                     ->color(fn($record) => $record->isLowStock() ? 'danger' : 'success'),
 
                 TextColumn::make('minimum_stock')
-                    ->label('Min Stock')
+                    ->label('Stok Min')
                     ->formatStateUsing(fn($state, $record) => static::formatQuantity($state) . ' ' . $record->uom_stock)
                     ->alignEnd()
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 IconColumn::make('is_active')
-                    ->label('Active?')
+                    ->label('Aktif?')
                     ->boolean()
                     ->sortable(),
+
                 TextColumn::make('created_at')
-                    ->dateTime()
+                    ->label('Dibuat')
+                    ->dateTime('d M Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
+
                 TextColumn::make('updated_at')
-                    ->dateTime()
+                    ->label('Diperbarui')
+                    ->dateTime('d M Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
+
                 TextColumn::make('deleted_at')
-                    ->dateTime()
+                    ->label('Dihapus')
+                    ->dateTime('d M Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 SelectFilter::make('type')
-                    ->label('Product Type')
+                    ->label('Tipe Produk')
                     ->options([
                         'raw' => 'Bahan Baku',
                         'wip' => 'Work In Progress',
@@ -127,14 +136,14 @@ class ProductsTable
                     ->multiple(),
 
                 SelectFilter::make('is_sellable')
-                    ->label('For Sale?')
+                    ->label('Bisa Dijual?')
                     ->options([
                         1 => 'Ya (Dijual)',
                         0 => 'Tidak',
                     ]),
 
                 SelectFilter::make('is_purchasable')
-                    ->label('For Purchase?')
+                    ->label('Bisa Dibeli?')
                     ->options([
                         1 => 'Ya (Dibeli)',
                         0 => 'Tidak',
@@ -143,21 +152,31 @@ class ProductsTable
                 SelectFilter::make('is_active')
                     ->label('Status')
                     ->options([
-                        1 => 'Active',
-                        0 => 'Inactive',
+                        1 => 'Aktif',
+                        0 => 'Tidak Aktif',
                     ]),
 
-                TrashedFilter::make(),
+                TrashedFilter::make()
+                    ->label('Status Penghapusan')
+                    ->placeholder('Semua')
+                    ->trueLabel('Hanya yang Dihapus')
+                    ->falseLabel('Tanpa yang Dihapus')
+                    ->native(false),
             ])
-            ->recordActions([
-                ViewAction::make(),
-                EditAction::make(),
+            ->actions([
+                ViewAction::make()
+                    ->label('Lihat'),
+                EditAction::make()
+                    ->label('Ubah'),
             ])
-            ->toolbarActions([
+            ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                    ForceDeleteBulkAction::make(),
-                    RestoreBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->label('Hapus'),
+                    ForceDeleteBulkAction::make()
+                        ->label('Hapus Permanen'),
+                    RestoreBulkAction::make()
+                        ->label('Pulihkan'),
                 ]),
             ])
             ->defaultSort('name', 'asc')

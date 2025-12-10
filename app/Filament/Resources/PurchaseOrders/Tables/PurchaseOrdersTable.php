@@ -21,7 +21,7 @@ class PurchaseOrdersTable
         return $table
             ->columns([
                 TextColumn::make('po_number')
-                    ->label('PO Number')
+                    ->label('No. PO')
                     ->searchable()
                     ->sortable()
                     ->weight('bold')
@@ -36,13 +36,13 @@ class PurchaseOrdersTable
                     ->icon('heroicon-o-building-office-2'),
 
                 TextColumn::make('order_date')
-                    ->label('Order Date')
+                    ->label('Tgl Order')
                     ->date('d M Y')
                     ->sortable()
                     ->icon('heroicon-o-calendar'),
 
                 TextColumn::make('expected_delivery_date')
-                    ->label('Expected Delivery')
+                    ->label('Estimasi Kirim')
                     ->date('d M Y')
                     ->sortable()
                     ->toggleable(),
@@ -61,16 +61,16 @@ class PurchaseOrdersTable
                     ->formatStateUsing(fn(string $state): string => match ($state) {
                         'draft' => 'DRAFT',
                         'pending' => 'PENDING',
-                        'approved' => 'APPROVED',
-                        'partially_received' => 'PARTIALLY RECEIVED',
-                        'received' => 'RECEIVED',
-                        'cancelled' => 'CANCELLED',
+                        'approved' => 'DISETUJUI',
+                        'partially_received' => 'SEBAGIAN DITERIMA',
+                        'received' => 'DITERIMA',
+                        'cancelled' => 'DIBATALKAN',
                         default => strtoupper($state),
                     })
                     ->sortable(),
 
                 TextColumn::make('total')
-                    ->label('Total Amount')
+                    ->label('Total')
                     ->money('IDR')
                     ->sortable()
                     ->weight('bold')
@@ -78,49 +78,58 @@ class PurchaseOrdersTable
                     ->color('success'),
 
                 TextColumn::make('approvedBy.name')
-                    ->label('Approved By')
+                    ->label('Disetujui Oleh')
                     ->toggleable(isToggledHiddenByDefault: true)
                     ->icon('heroicon-o-user-circle'),
 
                 TextColumn::make('approved_at')
-                    ->label('Approved Date')
+                    ->label('Tgl Disetujui')
                     ->dateTime('d M Y H:i')
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('created_at')
-                    ->label('Created')
+                    ->label('Dibuat')
                     ->dateTime('d M Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('updated_at')
-                    ->label('Updated')
+                    ->label('Diperbarui')
                     ->dateTime('d M Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 SelectFilter::make('status')
+                    ->label('Status')
                     ->options([
                         'draft' => 'Draft',
                         'pending' => 'Pending',
-                        'approved' => 'Approved',
-                        'partially_received' => 'Partially Received',
-                        'received' => 'Received',
-                        'cancelled' => 'Cancelled',
+                        'approved' => 'Disetujui',
+                        'partially_received' => 'Sebagian Diterima',
+                        'received' => 'Diterima',
+                        'cancelled' => 'Dibatalkan',
                     ])
                     ->multiple(),
 
                 SelectFilter::make('vendor')
+                    ->label('Supplier')
                     ->relationship('vendor', 'name')
                     ->searchable()
                     ->preload(),
 
-                TrashedFilter::make(),
+                TrashedFilter::make()
+                    ->label('Status Penghapusan')
+                    ->placeholder('Semua')
+                    ->trueLabel('Hanya yang Dihapus')
+                    ->falseLabel('Tanpa yang Dihapus')
+                    ->native(false),
             ])
-            ->recordActions([
-                ViewAction::make(),
+            ->actions([
+                ViewAction::make()
+                    ->label('Lihat'),
                 EditAction::make()
+                    ->label('Ubah')
                     ->visible(
                         fn(PurchaseOrder $record): bool =>
                         $record->status === PurchaseOrder::STATUS_DRAFT
@@ -128,11 +137,15 @@ class PurchaseOrdersTable
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                    ForceDeleteBulkAction::make(),
-                    RestoreBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->label('Hapus'),
+                    ForceDeleteBulkAction::make()
+                        ->label('Hapus Permanen'),
+                    RestoreBulkAction::make()
+                        ->label('Pulihkan'),
                 ]),
             ])
             ->defaultSort('order_date', 'desc');
     }
 }
+

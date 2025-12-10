@@ -6,7 +6,6 @@ use App\Filament\Resources\PurchaseOrders\Pages\CreatePurchaseOrder;
 use App\Filament\Resources\PurchaseOrders\Pages\EditPurchaseOrder;
 use App\Filament\Resources\PurchaseOrders\Pages\ListPurchaseOrders;
 use App\Filament\Resources\PurchaseOrders\Pages\ViewPurchaseOrder;
-use App\Filament\Resources\PurchaseOrders\RelationManagers;
 use App\Filament\Resources\PurchaseOrders\Schemas\PurchaseOrderForm;
 use App\Filament\Resources\PurchaseOrders\Schemas\PurchaseOrderInfolist;
 use App\Filament\Resources\PurchaseOrders\Tables\PurchaseOrdersTable;
@@ -28,15 +27,15 @@ class PurchaseOrderResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'po_number';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Pembelian';
-
-    protected static ?int $navigationSort = 2;
-
     protected static ?string $navigationLabel = 'Order Pembelian';
 
     protected static ?string $modelLabel = 'Order Pembelian';
 
     protected static ?string $pluralModelLabel = 'Order Pembelian';
+
+    protected static string|UnitEnum|null $navigationGroup = '🛒 Pembelian';
+
+    protected static ?int $navigationSort = 2;
     public static function form(Schema $schema): Schema
     {
         return PurchaseOrderForm::configure($schema);
@@ -50,13 +49,6 @@ class PurchaseOrderResource extends Resource
     public static function table(Table $table): Table
     {
         return PurchaseOrdersTable::configure($table);
-    }
-
-    public static function getRelations(): array
-    {
-        return [
-            RelationManagers\ItemsRelationManager::class,
-        ];
     }
 
     public static function getPages(): array

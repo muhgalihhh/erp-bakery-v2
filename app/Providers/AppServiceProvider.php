@@ -6,9 +6,15 @@ use App\Models\User;
 use App\Models\PurchaseOrder;
 use App\Models\GoodReceipt;
 use App\Models\VendorPayment;
+use App\Models\StockAdjustment;
+use App\Models\Customer;
+use App\Models\SalesOrder;
 use App\Observers\PurchaseOrderObserver;
 use App\Observers\GoodReceiptObserver;
 use App\Observers\VendorPaymentObserver;
+use App\Observers\StockAdjustmentObserver;
+use App\Observers\CustomerObserver;
+use App\Observers\SalesOrderObserver;
 use App\Policies\UserPolicy;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -44,5 +50,10 @@ class AppServiceProvider extends ServiceProvider
         PurchaseOrder::observe(PurchaseOrderObserver::class);
         GoodReceipt::observe(GoodReceiptObserver::class);
         VendorPayment::observe(VendorPaymentObserver::class);
+        StockAdjustment::observe(StockAdjustmentObserver::class);
+
+        // Sales & CRM observers
+        Customer::observe(CustomerObserver::class);
+        SalesOrder::observe(SalesOrderObserver::class);
     }
 }

@@ -23,19 +23,19 @@ class PurchaseOrderForm
                 Tabs::make('Purchase Order')
                     ->tabs([
                         // Tab 1: PO Information
-                        Tabs\Tab::make('PO Information')
+                        Tabs\Tab::make('Informasi PO')
                             ->schema([
-                                Fieldset::make('Vendor & PO Details')
+                                Fieldset::make('Supplier & Detail PO')
                                     ->schema([
                                         Placeholder::make('po_number')
-                                            ->label('PO Number')
-                                            ->content(fn($record) => $record?->po_number ?? 'Auto-generated after save')
-                                            ->helperText('📝 Generated automatically: PO-YYYYMM-XXXX')
+                                            ->label('No. PO')
+                                            ->content(fn($record) => $record?->po_number ?? 'Otomatis setelah disimpan')
+                                            ->helperText('📝 Dibuat otomatis: PO-YYYYMM-XXXX')
                                             ->hidden(fn($context) => $context === 'create')
                                             ->columnSpan(2),
 
                                         Select::make('vendor_id')
-                                            ->label('Vendor / Supplier')
+                                            ->label('Supplier')
                                             ->relationship(
                                                 'vendor',
                                                 'name',
@@ -45,88 +45,88 @@ class PurchaseOrderForm
                                             ->searchable()
                                             ->preload()
                                             ->required()
-                                            ->helperText('Select active vendor/supplier')
+                                            ->helperText('Pilih supplier aktif')
                                             ->columnSpan(fn($context) => $context === 'create' ? 2 : 1),
 
                                         DatePicker::make('order_date')
-                                            ->label('Order Date')
+                                            ->label('Tanggal Order')
                                             ->required()
                                             ->default(now())
                                             ->native(false),
 
                                         DatePicker::make('expected_delivery_date')
-                                            ->label('Expected Delivery')
+                                            ->label('Estimasi Pengiriman')
                                             ->native(false)
-                                            ->helperText('When do you expect delivery?'),
+                                            ->helperText('Kapan diharapkan dikirim?'),
 
                                         Select::make('status')
                                             ->label('Status')
                                             ->options([
                                                 'draft' => 'Draft',
-                                                'pending' => 'Pending Approval',
-                                                'approved' => 'Approved',
-                                                'received' => 'Received',
-                                                'cancelled' => 'Cancelled',
+                                                'pending' => 'Menunggu Persetujuan',
+                                                'approved' => 'Disetujui',
+                                                'received' => 'Diterima',
+                                                'cancelled' => 'Dibatalkan',
                                             ])
                                             ->default('draft')
                                             ->required()
-                                            ->helperText('Current PO status'),
+                                            ->helperText('Status PO saat ini'),
                                     ])
                                     ->columns(3),
 
-                                Fieldset::make('Financial Summary')
+                                Fieldset::make('Ringkasan Keuangan')
                                     ->schema([
                                         TextInput::make('shipping_cost')
-                                            ->label('Shipping Cost')
+                                            ->label('Biaya Kirim')
                                             ->numeric()
                                             ->default(0)
                                             ->prefix('Rp')
-                                            ->helperText('Additional shipping/delivery cost'),
+                                            ->helperText('Biaya tambahan pengiriman'),
 
                                         Placeholder::make('subtotal_display')
                                             ->label('Subtotal')
-                                            ->content(fn($get) => 'Rp ' . number_format($get('subtotal') ?? 0, 2)),
+                                            ->content(fn($get) => 'Rp ' . number_format((float) ($get('subtotal') ?? 0), 0)),
 
                                         Placeholder::make('discount_display')
-                                            ->label('Total Discount')
-                                            ->content(fn($get) => 'Rp ' . number_format($get('discount_amount') ?? 0, 2)),
+                                            ->label('Total Diskon')
+                                            ->content(fn($get) => 'Rp ' . number_format((float) ($get('discount_amount') ?? 0), 0)),
 
                                         Placeholder::make('tax_display')
-                                            ->label('Total Tax')
-                                            ->content(fn($get) => 'Rp ' . number_format($get('tax_amount') ?? 0, 2)),
+                                            ->label('Total Pajak')
+                                            ->content(fn($get) => 'Rp ' . number_format((float) ($get('tax_amount') ?? 0), 0)),
 
                                         Placeholder::make('total_display')
-                                            ->label('Grand Total')
-                                            ->content(fn($get) => 'Rp ' . number_format($get('total') ?? 0, 2)),
+                                            ->label('Total Keseluruhan')
+                                            ->content(fn($get) => 'Rp ' . number_format((float) ($get('total') ?? 0), 0)),
                                     ])
                                     ->columns(5)
                                     ->hidden(fn($get) => !$get('id')), // Only show on edit
 
-                                Fieldset::make('Notes & Terms')
+                                Fieldset::make('Catatan & Syarat')
                                     ->schema([
                                         Textarea::make('notes')
-                                            ->label('Internal Notes')
+                                            ->label('Catatan Internal')
                                             ->rows(2)
-                                            ->placeholder('Internal notes for this PO...')
+                                            ->placeholder('Catatan internal untuk PO ini...')
                                             ->columnSpanFull(),
 
                                         Textarea::make('terms_and_conditions')
-                                            ->label('Terms & Conditions')
+                                            ->label('Syarat & Ketentuan')
                                             ->rows(3)
-                                            ->placeholder('Payment terms, delivery terms, etc.')
+                                            ->placeholder('Termin pembayaran, syarat pengiriman, dll.')
                                             ->columnSpanFull(),
                                     ]),
                             ]),
 
                         // Tab 2: Items (Line Items dengan Repeater)
-                        Tabs\Tab::make('Items')
+                        Tabs\Tab::make('Item Pembelian')
                             ->schema([
                                 Repeater::make('items')
                                     ->relationship('items')
                                     ->schema([
                                         // Row 1: Product Selection - Full Width
                                         Select::make('product_id')
-                                            ->label('Product / Material')
+                                            ->label('Produk / Bahan')
                                             ->relationship(
                                                 'product',
                                                 'name',
@@ -137,7 +137,7 @@ class PurchaseOrderForm
                                             ->searchable()
                                             ->preload()
                                             ->required()
-                                            ->helperText('Select raw material or consumable')
+                                            ->helperText('Pilih bahan baku atau konsumsi')
                                             ->columnSpanFull()
                                             ->reactive()
                                             ->afterStateUpdated(function ($state, callable $set) {
@@ -151,7 +151,7 @@ class PurchaseOrderForm
 
                                         // Row 2: Quantities & Prices - 4 columns
                                         TextInput::make('quantity')
-                                            ->label('Quantity')
+                                            ->label('Jumlah')
                                             ->required()
                                             ->numeric()
                                             ->default(1)
@@ -166,7 +166,7 @@ class PurchaseOrderForm
                                             ->columnSpan(1),
 
                                         TextInput::make('unit_price')
-                                            ->label('Unit Price')
+                                            ->label('Harga Satuan')
                                             ->required()
                                             ->numeric()
                                             ->prefix('Rp')
@@ -179,7 +179,7 @@ class PurchaseOrderForm
                                             ->columnSpan(1),
 
                                         TextInput::make('discount_percentage')
-                                            ->label('Discount %')
+                                            ->label('Diskon %')
                                             ->numeric()
                                             ->suffix('%')
                                             ->default(0)
@@ -193,7 +193,7 @@ class PurchaseOrderForm
                                             ->columnSpan(1),
 
                                         TextInput::make('tax_percentage')
-                                            ->label('Tax %')
+                                            ->label('Pajak %')
                                             ->numeric()
                                             ->suffix('%')
                                             ->default(0)
@@ -206,21 +206,21 @@ class PurchaseOrderForm
 
                                         // Row 3: Total Display - Full Width
                                         Placeholder::make('total_display')
-                                            ->label('Item Total')
-                                            ->content(fn($get) => 'Rp ' . number_format($get('total') ?? 0, 2))
+                                            ->label('Total Item')
+                                            ->content(fn($get) => 'Rp ' . number_format((float) ($get('total') ?? 0), 0))
                                             ->extraAttributes(['class' => 'text-success-600 font-bold text-lg'])
                                             ->columnSpanFull(),
 
                                         // Row 4: Notes - Full Width
                                         Textarea::make('notes')
-                                            ->label('Item Notes')
+                                            ->label('Catatan Item')
                                             ->rows(2)
-                                            ->placeholder('Special notes for this item...')
+                                            ->placeholder('Catatan khusus untuk item ini...')
                                             ->columnSpanFull(),
                                     ])
                                     ->columns(4)
                                     ->defaultItems(0)
-                                    ->addActionLabel('➕ Add Item')
+                                    ->addActionLabel('➕ Tambah Item')
                                     ->reorderable()
                                     ->reorderableWithButtons()
                                     ->collapsible()
@@ -228,16 +228,16 @@ class PurchaseOrderForm
                                     ->deleteAction(
                                         fn($action) => $action
                                             ->requiresConfirmation()
-                                            ->modalHeading('Remove Item?')
-                                            ->modalDescription('Are you sure?')
+                                            ->modalHeading('Hapus Item?')
+                                            ->modalDescription('Apakah Anda yakin?')
                                     )
                                     ->itemLabel(
                                         fn(array $state): ?string =>
                                         $state['product_id']
                                         ? '📦 ' . Product::find($state['product_id'])?->name .
-                                        ' • Qty: ' . ($state['quantity'] ?? 0) . ' × Rp ' . number_format($state['unit_price'] ?? 0, 0) .
-                                        ' = Rp ' . number_format($state['total'] ?? 0, 0)
-                                        : '🆕 New Item'
+                                        ' • Jml: ' . ($state['quantity'] ?? 0) . ' × Rp ' . number_format((float) ($state['unit_price'] ?? 0), 0) .
+                                        ' = Rp ' . number_format((float) ($state['total'] ?? 0), 0)
+                                        : '🆕 Item Baru'
                                     )
                                     ->columnSpanFull()
                                     ->live(),
@@ -284,7 +284,7 @@ class PurchaseOrderForm
     {
         $product = Product::find($get('product_id'));
         if ($product && $product->conversion_purchase_to_stock) {
-            $conversionValue = static::formatNumber($product->conversion_purchase_to_stock);
+            $conversionValue = static::formatNumber((float) $product->conversion_purchase_to_stock);
             return "1 {$product->uom_purchase} = {$conversionValue} {$product->uom_stock}";
         }
         return null;
@@ -298,5 +298,3 @@ class PurchaseOrderForm
         return rtrim(rtrim(number_format($number, 4, '.', ''), '0'), '.');
     }
 }
-
-

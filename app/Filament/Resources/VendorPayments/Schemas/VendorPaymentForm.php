@@ -20,26 +20,26 @@ class VendorPaymentForm
     {
         return $schema
             ->components([
-                Tabs::make('Vendor Payment')
+                Tabs::make('Pembayaran Supplier')
                     ->tabs([
                         // Tab 1: Payment Information
-                        Tabs\Tab::make('Payment Info')
+                        Tabs\Tab::make('Info Pembayaran')
                             ->schema([
-                                Fieldset::make('Payment Details')
+                                Fieldset::make('Detail Pembayaran')
                                     ->schema([
                                         Placeholder::make('payment_number')
-                                            ->label('Payment Number')
-                                            ->content(fn($record) => $record?->payment_number ?? 'Auto-generated after save')
-                                            ->helperText('📝 Generated automatically: PAY-YYYYMM-XXXX')
+                                            ->label('No. Pembayaran')
+                                            ->content(fn($record) => $record?->payment_number ?? 'Otomatis setelah disimpan')
+                                            ->helperText('📝 Dibuat otomatis: PAY-YYYYMM-XXXX')
                                             ->hidden(fn($context) => $context === 'create'),
 
                                         Select::make('vendor_id')
-                                            ->label('Vendor')
+                                            ->label('Supplier')
                                             ->relationship('vendor', 'name')
                                             ->searchable()
                                             ->preload()
                                             ->required()
-                                            ->helperText('Select vendor to pay')
+                                            ->helperText('Pilih supplier yang dibayar')
                                             ->reactive()
                                             ->afterStateUpdated(function ($state, callable $set) {
                                                 if ($state) {
@@ -50,17 +50,17 @@ class VendorPaymentForm
                                             }),
 
                                         Placeholder::make('_vendor_info')
-                                            ->label('Vendor Contact')
+                                            ->label('Kontak Supplier')
                                             ->content(
                                                 fn($get) =>
                                                 $get('_vendor_email') || $get('_vendor_phone')
                                                 ? "📧 {$get('_vendor_email')} | 📱 {$get('_vendor_phone')}"
-                                                : 'Select vendor to see contact info'
+                                                : 'Pilih supplier untuk melihat kontak'
                                             )
                                             ->hidden(fn($context) => $context === 'create'),
 
                                         Select::make('purchase_order_id')
-                                            ->label('Purchase Order Reference (Optional)')
+                                            ->label('Referensi PO (Opsional)')
                                             ->relationship(
                                                 'purchaseOrder',
                                                 'po_number',
@@ -74,104 +74,104 @@ class VendorPaymentForm
                                             )
                                             ->searchable()
                                             ->preload()
-                                            ->helperText('Link to specific PO (optional)')
+                                            ->helperText('Link ke PO tertentu (opsional)')
                                             ->reactive()
                                             ->afterStateUpdated(function ($state, callable $set) {
                                                 if ($state) {
                                                     $po = PurchaseOrder::find($state);
                                                     if ($po) {
                                                         $set('amount', $po->total);
-                                                        $set('_po_total', 'Rp ' . number_format($po->total, 0, ',', '.'));
+                                                        $set('_po_total', 'Rp ' . number_format((float) $po->total, 0, ',', '.'));
                                                     }
                                                 }
                                             }),
 
                                         Placeholder::make('_po_total')
-                                            ->label('PO Total')
-                                            ->content(fn($get) => $get('_po_total') ?? 'No PO selected')
+                                            ->label('Total PO')
+                                            ->content(fn($get) => $get('_po_total') ?? 'Tidak ada PO dipilih')
                                             ->hidden(fn($get) => !$get('purchase_order_id')),
                                     ])
                                     ->columns(2),
 
-                                Fieldset::make('Payment Amount & Method')
+                                Fieldset::make('Jumlah & Metode Pembayaran')
                                     ->schema([
                                         DatePicker::make('payment_date')
-                                            ->label('Payment Date')
+                                            ->label('Tanggal Bayar')
                                             ->required()
                                             ->default(now())
                                             ->native(false)
                                             ->maxDate(now())
-                                            ->helperText('When was this payment made?'),
+                                            ->helperText('Kapan pembayaran dilakukan?'),
 
                                         TextInput::make('amount')
-                                            ->label('Payment Amount')
+                                            ->label('Jumlah Bayar')
                                             ->required()
                                             ->numeric()
                                             ->prefix('Rp')
                                             ->step(0.01)
-                                            ->helperText('Amount paid to vendor'),
+                                            ->helperText('Jumlah yang dibayarkan ke supplier'),
 
                                         Select::make('payment_method')
-                                            ->label('Payment Method')
+                                            ->label('Metode Pembayaran')
                                             ->options([
-                                                'cash' => 'Cash',
-                                                'bank_transfer' => 'Bank Transfer',
-                                                'check' => 'Check',
+                                                'cash' => 'Tunai',
+                                                'bank_transfer' => 'Transfer Bank',
+                                                'check' => 'Cek',
                                                 'giro' => 'Giro',
-                                                'other' => 'Other',
+                                                'other' => 'Lainnya',
                                             ])
                                             ->default('bank_transfer')
                                             ->required()
                                             ->reactive()
-                                            ->helperText('How was this payment made?'),
+                                            ->helperText('Bagaimana pembayaran dilakukan?'),
 
                                         TextInput::make('reference_number')
                                             ->label(fn($get) => match ($get('payment_method')) {
-                                                'check' => 'Check Number',
-                                                'giro' => 'Giro Number',
-                                                'bank_transfer' => 'Transfer Reference',
-                                                default => 'Reference Number',
+                                                'check' => 'No. Cek',
+                                                'giro' => 'No. Giro',
+                                                'bank_transfer' => 'No. Referensi Transfer',
+                                                default => 'No. Referensi',
                                             })
                                             ->maxLength(100)
                                             ->helperText(fn($get) => match ($get('payment_method')) {
-                                                'check' => 'Enter check number',
-                                                'giro' => 'Enter giro number',
-                                                'bank_transfer' => 'Enter transfer/transaction ID',
-                                                default => 'Optional reference number',
+                                                'check' => 'Masukkan nomor cek',
+                                                'giro' => 'Masukkan nomor giro',
+                                                'bank_transfer' => 'Masukkan ID transaksi/transfer',
+                                                default => 'Nomor referensi (opsional)',
                                             }),
 
                                         TextInput::make('bank_account')
-                                            ->label('Bank Account')
+                                            ->label('Rekening Bank')
                                             ->maxLength(100)
-                                            ->helperText('Destination/source bank account')
+                                            ->helperText('Rekening tujuan/sumber')
                                             ->visible(fn($get) => in_array($get('payment_method'), ['bank_transfer', 'check', 'giro'])),
 
                                         Select::make('paid_by')
-                                            ->label('Paid By')
+                                            ->label('Dibayar Oleh')
                                             ->relationship('paidBy', 'name')
                                             ->default(Auth::id())
                                             ->required()
-                                            ->helperText('User who processed this payment'),
+                                            ->helperText('User yang memproses pembayaran'),
 
                                         Select::make('status')
                                             ->label('Status')
                                             ->options([
                                                 'draft' => 'Draft',
-                                                'confirmed' => 'Confirmed',
-                                                'cancelled' => 'Cancelled',
+                                                'confirmed' => 'Dikonfirmasi',
+                                                'cancelled' => 'Dibatalkan',
                                             ])
                                             ->default('draft')
                                             ->required()
-                                            ->helperText('Payment status'),
+                                            ->helperText('Status pembayaran'),
                                     ])
                                     ->columns(3),
 
-                                Fieldset::make('Additional Information')
+                                Fieldset::make('Informasi Tambahan')
                                     ->schema([
                                         Textarea::make('notes')
-                                            ->label('Notes')
+                                            ->label('Catatan')
                                             ->rows(3)
-                                            ->placeholder('Any additional notes about this payment...')
+                                            ->placeholder('Catatan tambahan tentang pembayaran ini...')
                                             ->columnSpanFull(),
                                     ]),
                             ]),

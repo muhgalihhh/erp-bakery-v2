@@ -96,6 +96,14 @@ class Product extends Model
     }
 
     /**
+     * Relationship: Stock Movements untuk produk ini
+     */
+    public function stockMovements(): HasMany
+    {
+        return $this->hasMany(StockMovement::class, 'product_id')->orderBy('created_at', 'desc');
+    }
+
+    /**
      * Scope: Hanya produk aktif
      */
     public function scopeActive($query)
@@ -171,6 +179,13 @@ class Product extends Model
     public function decreaseStock(float $quantity, string $fromUom = 'usage'): void
     {
         $quantityInStockUom = $this->convertToStockUom($quantity, $fromUom);
+        // Prevent negative stock
+        if (!$this->hasEnoughStock($quantityInStockUom)) {
+            throw new \RuntimeException(
+                "Stok {$this->name} tidak cukup. Tersedia: " . number_format((float) $this->current_stock, 2) .
+                " {$this->uom_stock}, dibutuhkan: " . number_format((float) $quantityInStockUom, 2) . " {$this->uom_stock}"
+            );
+        }
         $this->current_stock -= $quantityInStockUom;
         $this->save();
     }
@@ -189,6 +204,14 @@ class Product extends Model
             'stock' => $quantity, // Already in stock UOM
             default => $quantity,
         };
+    }
+
+    /**
+     * Check if product has enough stock in stock UOM
+     */
+    public function hasEnoughStock(float $quantityInStockUom): bool
+    {
+        return $this->current_stock >= $quantityInStockUom;
     }
 
     /**

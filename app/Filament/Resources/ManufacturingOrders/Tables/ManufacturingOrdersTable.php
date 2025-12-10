@@ -25,29 +25,29 @@ class ManufacturingOrdersTable
             ->defaultSort('production_date', 'desc')
             ->columns([
                 TextColumn::make('mo_number')
-                    ->label('MO Number')
+                    ->label('No. Order Produksi')
                     ->searchable()
                     ->sortable()
                     ->weight(FontWeight::Bold)
                     ->copyable(),
 
                 TextColumn::make('production_date')
-                    ->label('Production Date')
+                    ->label('Tanggal Produksi')
                     ->date('d M Y')
                     ->sortable(),
 
                 TextColumn::make('product.name')
-                    ->label('Product')
+                    ->label('Produk')
                     ->searchable()
                     ->sortable(),
 
                 TextColumn::make('quantity_to_produce')
-                    ->label('Target Qty')
+                    ->label('Target')
                     ->formatStateUsing(fn($state) => number_format((float) $state, 0))
                     ->alignEnd(),
 
                 TextColumn::make('quantity_produced')
-                    ->label('Produced')
+                    ->label('Diproduksi')
                     ->formatStateUsing(fn($state) => number_format((float) $state, 0))
                     ->alignEnd()
                     ->color(fn($record) => $record->quantity_produced >= $record->quantity_to_produce ? 'success' : 'warning'),
@@ -63,7 +63,14 @@ class ManufacturingOrdersTable
                         'cancelled' => 'danger',
                         default => 'gray',
                     })
-                    ->formatStateUsing(fn($state) => ucwords(str_replace('_', ' ', $state))),
+                    ->formatStateUsing(fn($state) => match ($state) {
+                        'draft' => 'Draft',
+                        'confirmed' => 'Dikonfirmasi',
+                        'in_progress' => 'Sedang Proses',
+                        'completed' => 'Selesai',
+                        'cancelled' => 'Dibatalkan',
+                        default => ucwords(str_replace('_', ' ', $state))
+                    }),
 
                 TextColumn::make('total_cost')
                     ->label('Total HPP')
@@ -85,13 +92,13 @@ class ManufacturingOrdersTable
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('actual_start_time')
-                    ->label('Started')
+                    ->label('Mulai')
                     ->dateTime('d M Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('actual_finish_time')
-                    ->label('Finished')
+                    ->label('Selesai')
                     ->dateTime('d M Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -103,31 +110,36 @@ class ManufacturingOrdersTable
             ])
             ->filters([
                 SelectFilter::make('status')
+                    ->label('Status')
                     ->options([
                         'draft' => 'Draft',
-                        'confirmed' => 'Confirmed',
-                        'in_progress' => 'In Progress',
-                        'completed' => 'Completed',
-                        'cancelled' => 'Cancelled',
+                        'confirmed' => 'Dikonfirmasi',
+                        'in_progress' => 'Sedang Proses',
+                        'completed' => 'Selesai',
+                        'cancelled' => 'Dibatalkan',
                     ]),
                 SelectFilter::make('product_id')
+                    ->label('Produk')
                     ->relationship('product', 'name')
                     ->searchable()
                     ->preload(),
                 TrashedFilter::make(),
             ])
             ->recordActions([
-                ViewAction::make(),
+                ViewAction::make()
+                    ->label('Lihat'),
                 EditAction::make()
+                    ->label('Ubah')
                     ->hidden(fn($record) => in_array($record->status, ['completed', 'cancelled'])),
 
                 // Confirm Action
                 Action::make('confirm')
-                    ->label('Confirm')
+                    ->label('Konfirmasi')
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
                     ->requiresConfirmation()
-                    ->modalDescription('This will prepare materials based on BOM. Continue?')
+                    ->modalHeading('Konfirmasi Order Produksi')
+                    ->modalDescription('Ini akan menyiapkan bahan baku berdasarkan resep. Lanjutkan?')
                     ->visible(fn($record) => $record->status === 'draft')
                     ->action(function (ManufacturingOrder $record) {
                         try {
@@ -135,13 +147,13 @@ class ManufacturingOrdersTable
 
                             Notification::make()
                                 ->success()
-                                ->title('MO Confirmed')
-                                ->body("MO {$record->mo_number} confirmed. Materials prepared.")
+                                ->title('Order Produksi Dikonfirmasi')
+                                ->body("Order {$record->mo_number} telah dikonfirmasi. Bahan baku siap diproses.")
                                 ->send();
                         } catch (\Exception $e) {
                             Notification::make()
                                 ->danger()
-                                ->title('Failed to Confirm')
+                                ->title('Gagal Konfirmasi')
                                 ->body($e->getMessage())
                                 ->send();
                         }
@@ -149,11 +161,12 @@ class ManufacturingOrdersTable
 
                 // Start Production Action
                 Action::make('start')
-                    ->label('Start')
+                    ->label('Mulai Produksi')
                     ->icon('heroicon-o-play')
                     ->color('warning')
                     ->requiresConfirmation()
-                    ->modalDescription('Start production now?')
+                    ->modalHeading('Mulai Produksi')
+                    ->modalDescription('Mulai proses produksi sekarang?')
                     ->visible(fn($record) => $record->status === 'confirmed')
                     ->action(function (ManufacturingOrder $record) {
                         try {
@@ -161,13 +174,13 @@ class ManufacturingOrdersTable
 
                             Notification::make()
                                 ->success()
-                                ->title('Production Started')
-                                ->body("MO {$record->mo_number} is now in progress.")
+                                ->title('Produksi Dimulai')
+                                ->body("Order {$record->mo_number} sedang dalam proses produksi.")
                                 ->send();
                         } catch (\Exception $e) {
                             Notification::make()
                                 ->danger()
-                                ->title('Failed to Start')
+                                ->title('Gagal Memulai')
                                 ->body($e->getMessage())
                                 ->send();
                         }
@@ -175,54 +188,54 @@ class ManufacturingOrdersTable
 
                 // Complete Production Action
                 Action::make('complete')
-                    ->label('Complete')
+                    ->label('Selesaikan')
                     ->icon('heroicon-o-check-badge')
                     ->color('success')
                     ->form([
                         \Filament\Forms\Components\TextInput::make('quantity_produced')
-                            ->label('Actual Quantity Produced')
+                            ->label('Jumlah Aktual Diproduksi')
                             ->required()
                             ->numeric()
                             ->minValue(0)
-                            ->suffix('units')
+                            ->suffix('unit')
                             ->default(fn($record) => $record->quantity_to_produce)
-                            ->helperText('How many units were successfully produced?'),
+                            ->helperText('Berapa unit yang berhasil diproduksi?'),
 
                         \Filament\Forms\Components\TextInput::make('quantity_scrapped')
-                            ->label('Quantity Scrapped/Rejected')
+                            ->label('Jumlah Reject/Gagal')
                             ->numeric()
                             ->minValue(0)
                             ->default(0)
-                            ->suffix('units')
-                            ->helperText('Defective or rejected units'),
+                            ->suffix('unit')
+                            ->helperText('Unit yang cacat atau ditolak'),
 
                         \Filament\Forms\Components\TextInput::make('labor_cost')
-                            ->label('Labor Cost')
+                            ->label('Biaya Tenaga Kerja')
                             ->required()
                             ->numeric()
                             ->minValue(0)
                             ->default(0)
                             ->prefix('Rp')
-                            ->helperText('Total labor cost for this production'),
+                            ->helperText('Total biaya tenaga kerja untuk produksi ini'),
 
                         \Filament\Forms\Components\TextInput::make('overhead_cost')
-                            ->label('Overhead Cost')
+                            ->label('Biaya Overhead')
                             ->required()
                             ->numeric()
                             ->minValue(0)
                             ->default(0)
                             ->prefix('Rp')
-                            ->helperText('Gas, electricity, machine depreciation, etc.'),
+                            ->helperText('Gas, listrik, depresiasi mesin, dll.'),
 
                         \Filament\Forms\Components\Textarea::make('completion_notes')
-                            ->label('Completion Notes')
+                            ->label('Catatan Penyelesaian')
                             ->rows(3)
-                            ->placeholder('Any notes about this production run...')
+                            ->placeholder('Catatan tentang produksi ini...')
                             ->columnSpanFull(),
                     ])
                     ->modalWidth('2xl')
-                    ->modalHeading('Complete Production')
-                    ->modalDescription('Enter production results and costs')
+                    ->modalHeading('Selesaikan Produksi')
+                    ->modalDescription('Masukkan hasil produksi dan biaya')
                     ->visible(fn($record) => $record->status === 'in_progress')
                     ->action(function (ManufacturingOrder $record, array $data) {
                         try {
@@ -239,13 +252,13 @@ class ManufacturingOrdersTable
 
                             Notification::make()
                                 ->success()
-                                ->title('Production Completed!')
-                                ->body("MO {$record->mo_number} completed. HPP: Rp " . number_format($record->cost_per_unit, 2) . "/unit")
+                                ->title('Produksi Selesai!')
+                                ->body("Order {$record->mo_number} selesai. HPP: Rp " . number_format((float) $record->cost_per_unit, 0) . "/unit")
                                 ->send();
                         } catch (\Exception $e) {
                             Notification::make()
                                 ->danger()
-                                ->title('Failed to Complete')
+                                ->title('Gagal Menyelesaikan')
                                 ->body($e->getMessage())
                                 ->persistent()
                                 ->send();
@@ -254,11 +267,12 @@ class ManufacturingOrdersTable
 
                 // Cancel Action
                 Action::make('cancel')
-                    ->label('Cancel')
+                    ->label('Batalkan')
                     ->icon('heroicon-o-x-circle')
                     ->color('danger')
                     ->requiresConfirmation()
-                    ->modalDescription('Cancel this manufacturing order?')
+                    ->modalHeading('Batalkan Order Produksi')
+                    ->modalDescription('Batalkan order produksi ini?')
                     ->visible(fn($record) => !in_array($record->status, ['completed', 'cancelled']))
                     ->action(function (ManufacturingOrder $record) {
                         try {
@@ -266,23 +280,26 @@ class ManufacturingOrdersTable
 
                             Notification::make()
                                 ->warning()
-                                ->title('MO Cancelled')
-                                ->body("MO {$record->mo_number} has been cancelled.")
+                                ->title('Order Produksi Dibatalkan')
+                                ->body("Order {$record->mo_number} telah dibatalkan.")
                                 ->send();
                         } catch (\Exception $e) {
                             Notification::make()
                                 ->danger()
-                                ->title('Failed to Cancel')
+                                ->title('Gagal Membatalkan')
                                 ->body($e->getMessage())
                                 ->send();
                         }
                     }),
             ])
-            ->toolbarActions([
+            ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                    ForceDeleteBulkAction::make(),
-                    RestoreBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->label('Hapus'),
+                    ForceDeleteBulkAction::make()
+                        ->label('Hapus Permanen'),
+                    RestoreBulkAction::make()
+                        ->label('Pulihkan'),
                 ]),
             ]);
     }

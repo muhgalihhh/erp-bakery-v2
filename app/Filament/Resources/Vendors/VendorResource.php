@@ -27,15 +27,15 @@ class VendorResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Pembelian';
-
-    protected static ?int $navigationSort = 1;
-
     protected static ?string $navigationLabel = 'Supplier';
 
     protected static ?string $modelLabel = 'Supplier';
 
     protected static ?string $pluralModelLabel = 'Supplier';
+
+    protected static string|UnitEnum|null $navigationGroup = '🛒 Pembelian';
+
+    protected static ?int $navigationSort = 1;
     public static function form(Schema $schema): Schema
     {
         return VendorForm::configure($schema);

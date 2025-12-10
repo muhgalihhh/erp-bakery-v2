@@ -27,9 +27,13 @@ class ManufacturingOrderResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'mo_number';
 
-    protected static ?string $navigationLabel = 'Manufacturing Orders';
+    protected static ?string $navigationLabel = 'Order Produksi';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Production';
+    protected static ?string $modelLabel = 'Order Produksi';
+
+    protected static ?string $pluralModelLabel = 'Order Produksi';
+
+    protected static string|UnitEnum|null $navigationGroup = '🏭 Produksi';
 
     protected static ?int $navigationSort = 1;
 

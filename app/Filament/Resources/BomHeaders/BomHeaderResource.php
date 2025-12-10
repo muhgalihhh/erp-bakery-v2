@@ -34,7 +34,7 @@ class BomHeaderResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Bill of Material';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Produksi';
+    protected static string|UnitEnum|null $navigationGroup = '📦 Master Data';
 
     protected static ?int $navigationSort = 2;
 

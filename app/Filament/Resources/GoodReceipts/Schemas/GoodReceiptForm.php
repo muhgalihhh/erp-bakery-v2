@@ -21,15 +21,15 @@ class GoodReceiptForm
     {
         return $schema
             ->components([
-                Tabs::make('Good Receipt')
+                Tabs::make('Penerimaan Barang')
                     ->tabs([
                         // Tab 1: Receipt Information
-                        Tabs\Tab::make('Receipt Info')
+                        Tabs\Tab::make('Info Penerimaan')
                             ->schema([
                                 Fieldset::make('Purchase Order')
                                     ->schema([
                                         Select::make('purchase_order_id')
-                                            ->label('Select Purchase Order')
+                                            ->label('Pilih Purchase Order')
                                             ->options(
                                                 PurchaseOrder::whereIn('status', ['approved', 'partially_received'])
                                                     ->with('vendor')
@@ -37,7 +37,7 @@ class GoodReceiptForm
                                                     ->mapWithKeys(fn($po) => [
                                                         $po->id => $po->po_number . ' - ' . $po->vendor->name .
                                                             ' | Status: ' . strtoupper(str_replace('_', ' ', $po->status)) .
-                                                            ' | Total: Rp ' . number_format($po->total, 0, ',', '.')
+                                                            ' | Total: Rp ' . number_format((float) $po->total, 0, ',', '.')
                                                     ])
                                             )
                                             ->searchable()
@@ -74,7 +74,7 @@ class GoodReceiptForm
                                                         $set('_po_vendor', $po->vendor->name);
                                                         $set('_po_date', $po->order_date->format('d M Y'));
                                                         $set('_po_items_count', $po->items->count());
-                                                        $set('_po_total', 'Rp ' . number_format($po->total, 0, ',', '.'));
+                                                        $set('_po_total', 'Rp ' . number_format((float) $po->total, 0, ',', '.'));
                                                         $set('_po_status', strtoupper(str_replace('_', ' ', $po->status)));
                                                     }
                                                 } else {
@@ -86,47 +86,47 @@ class GoodReceiptForm
                                                     $set('_po_status', null);
                                                 }
                                             })
-                                            ->helperText('✅ PO dengan status APPROVED atau PARTIALLY RECEIVED')
+                                            ->helperText('✅ PO dengan status DISETUJUI atau SEBAGIAN DITERIMA')
                                             ->columnSpan(2),
 
                                         // Display PO Details
                                         Placeholder::make('_po_details')
-                                            ->label('PO Details')
+                                            ->label('Detail PO')
                                             ->content(
                                                 fn($get) =>
                                                 $get('_po_vendor')
-                                                ? "📦 Supplier: {$get('_po_vendor')}\n📅 Order Date: {$get('_po_date')}\n📋 Items: {$get('_po_items_count')} item(s)\n💰 Total: {$get('_po_total')}\n📊 Status: {$get('_po_status')}"
+                                                ? "📦 Supplier: {$get('_po_vendor')}\n📅 Tgl Order: {$get('_po_date')}\n📋 Item: {$get('_po_items_count')} item\n💰 Total: {$get('_po_total')}\n📊 Status: {$get('_po_status')}"
                                                 : '← Pilih Purchase Order terlebih dahulu'
                                             )
                                             ->columnSpan(1),
                                     ])
                                     ->columns(3),
 
-                                Fieldset::make('Receipt Details')
+                                Fieldset::make('Detail Penerimaan')
                                     ->schema([
                                         Placeholder::make('receipt_number')
-                                            ->label('Receipt Number')
-                                            ->content(fn($record) => $record?->receipt_number ?? 'Auto-generated after save')
-                                            ->helperText('📝 Generated automatically: GR-YYYYMM-XXXX')
+                                            ->label('No. Penerimaan')
+                                            ->content(fn($record) => $record?->receipt_number ?? 'Otomatis setelah disimpan')
+                                            ->helperText('📝 Dibuat otomatis: GR-YYYYMM-XXXX')
                                             ->hidden(fn($context) => $context === 'create'),
 
                                         DatePicker::make('receipt_date')
-                                            ->label('Receipt Date')
+                                            ->label('Tanggal Terima')
                                             ->required()
                                             ->default(now())
                                             ->native(false),
 
                                         Select::make('received_by')
-                                            ->label('Received By')
+                                            ->label('Diterima Oleh')
                                             ->relationship('receivedBy', 'name')
                                             ->default(Auth::id())
                                             ->required()
-                                            ->helperText('User who received the goods'),
+                                            ->helperText('User yang menerima barang'),
 
                                         TextInput::make('delivery_note_number')
-                                            ->label('No. Surat Jalan (Delivery Note)')
+                                            ->label('No. Surat Jalan')
                                             ->placeholder('Contoh: SJ-VENDOR-12345')
-                                            ->helperText('📄 Opsional: Nomor surat jalan dari vendor/supplier')
+                                            ->helperText('📄 Opsional: Nomor surat jalan dari supplier')
                                             ->maxLength(100)
                                             ->suffixIcon('heroicon-o-document-text')
                                             ->columnSpan(2),
@@ -135,23 +135,23 @@ class GoodReceiptForm
                                             ->label('Status')
                                             ->options([
                                                 'draft' => 'Draft',
-                                                'confirmed' => 'Confirmed',
-                                                'cancelled' => 'Cancelled',
+                                                'confirmed' => 'Dikonfirmasi',
+                                                'cancelled' => 'Dibatalkan',
                                             ])
                                             ->default('draft')
                                             ->required(),
 
                                         Textarea::make('notes')
-                                            ->label('Notes')
+                                            ->label('Catatan')
                                             ->rows(3)
-                                            ->placeholder('Any notes about this receipt...')
+                                            ->placeholder('Catatan tentang penerimaan ini...')
                                             ->columnSpanFull(),
                                     ])
                                     ->columns(3),
                             ]),
 
                         // Tab 2: Items
-                        Tabs\Tab::make('Items Received')
+                        Tabs\Tab::make('Item Diterima')
                             ->schema([
                                 Repeater::make('items')
                                     ->schema([
@@ -163,7 +163,7 @@ class GoodReceiptForm
 
                                         // Product Info - Full Width
                                         Select::make('product_id')
-                                            ->label('Product')
+                                            ->label('Produk')
                                             // Not using relationship here because repeater no longer auto-saves via relationship.
                                             // Provide static options and keep disabled; value comes from PO item mapping.
                                             ->options(\App\Models\Product::query()->pluck('name', 'id'))
@@ -173,7 +173,7 @@ class GoodReceiptForm
 
                                         // Row 1: Quantities - 4 columns
                                         TextInput::make('ordered_quantity')
-                                            ->label('Ordered Qty')
+                                            ->label('Jumlah Dipesan')
                                             ->numeric()
                                             ->disabled()
                                             ->dehydrated()
@@ -184,7 +184,7 @@ class GoodReceiptForm
                                             ->columnSpan(1),
 
                                         Placeholder::make('_already_received_display')
-                                            ->label('Already Received')
+                                            ->label('Sudah Diterima')
                                             ->content(
                                                 fn($get) =>
                                                 ($get('_already_received') ?? 0) . ' ' .
@@ -194,7 +194,7 @@ class GoodReceiptForm
                                             ->columnSpan(1),
 
                                         Placeholder::make('_outstanding_display')
-                                            ->label('Outstanding')
+                                            ->label('Sisa')
                                             ->content(
                                                 fn($get) =>
                                                 ($get('_outstanding') ?? 0) . ' ' .
@@ -204,7 +204,7 @@ class GoodReceiptForm
                                             ->columnSpan(1),
 
                                         Placeholder::make('accepted_display')
-                                            ->label('Accepted Now')
+                                            ->label('Diterima Sekarang')
                                             ->content(
                                                 fn($get) =>
                                                 (($get('received_quantity') ?? 0) - ($get('rejected_quantity') ?? 0)) . ' ' .
@@ -215,7 +215,7 @@ class GoodReceiptForm
 
                                         // Row 2: Input quantities - 2 columns
                                         TextInput::make('received_quantity')
-                                            ->label('Received Qty Now ✍️')
+                                            ->label('Jumlah Diterima ✍️')
                                             ->required()
                                             ->numeric()
                                             ->default(0)
@@ -225,10 +225,10 @@ class GoodReceiptForm
                                             ->columnSpan(1),
 
                                         TextInput::make('rejected_quantity')
-                                            ->label('Rejected Qty ❌')
+                                            ->label('Jumlah Ditolak ❌')
                                             ->numeric()
                                             ->default(0)
-                                            ->helperText('Damaged/rejected')
+                                            ->helperText('Rusak/ditolak')
                                             ->suffix(
                                                 fn($get) =>
                                                 PurchaseOrderItem::find($get('purchase_order_item_id'))?->product?->uom_purchase ?? 'unit'
@@ -237,15 +237,15 @@ class GoodReceiptForm
 
                                         // Row 3: Notes - Full Width
                                         Textarea::make('notes')
-                                            ->label('Item Notes')
+                                            ->label('Catatan Item')
                                             ->rows(2)
-                                            ->placeholder('Notes for this item...')
+                                            ->placeholder('Catatan untuk item ini...')
                                             ->columnSpanFull(),
 
                                         Textarea::make('rejection_reason')
-                                            ->label('Rejection Reason')
+                                            ->label('Alasan Penolakan')
                                             ->rows(2)
-                                            ->placeholder('Why rejected? (quality issue, damage, etc.)')
+                                            ->placeholder('Kenapa ditolak? (kualitas buruk, rusak, dll.)')
                                             ->hidden(fn($get) => ($get('rejected_quantity') ?? 0) <= 0)
                                             ->columnSpanFull(),
                                     ])
@@ -258,7 +258,7 @@ class GoodReceiptForm
                                     ->cloneable(false)
                                     ->itemLabel(function (array $state): ?string {
                                         if (!$state['product_id'])
-                                            return '🆕 New Item';
+                                            return '🆕 Item Baru';
                                         $product = \App\Models\Product::find($state['product_id']);
                                         $ordered = $state['ordered_quantity'] ?? 0;
                                         $alreadyReceived = $state['_already_received'] ?? 0;
@@ -267,13 +267,13 @@ class GoodReceiptForm
                                         $accepted = $receivingNow - ($state['rejected_quantity'] ?? 0);
 
                                         return '📦 ' . $product?->name .
-                                            ' • Ordered: ' . $ordered .
-                                            ' • Outstanding: ' . $outstanding .
-                                            ' • Receiving: ' . $receivingNow .
-                                            ' • ✅ Accepted: ' . $accepted;
+                                            ' • Dipesan: ' . $ordered .
+                                            ' • Sisa: ' . $outstanding .
+                                            ' • Terima: ' . $receivingNow .
+                                            ' • ✅ Diterima: ' . $accepted;
                                     })
                                     ->columnSpanFull()
-                                    ->helperText('💡 Items auto-populated from PO. Click to expand each item. "Already Received" = confirmed from previous receipts. Enter quantities for this receipt.')
+                                    ->helperText('💡 Item otomatis dari PO. Klik untuk expand. "Sudah Diterima" = konfirmasi dari penerimaan sebelumnya. Input jumlah untuk penerimaan ini.')
                                     ->live(),
                             ]),
                     ])
@@ -291,13 +291,13 @@ class GoodReceiptForm
         $receivedQty = $get('received_quantity') ?? 0;
 
         if ($product && $product->conversion_purchase_to_stock && $receivedQty > 0) {
-            $stockQty = $receivedQty * $product->conversion_purchase_to_stock;
+            $stockQty = $receivedQty * (float) $product->conversion_purchase_to_stock;
             $formattedStockQty = static::formatNumber($stockQty);
-            $formattedConversion = static::formatNumber($product->conversion_purchase_to_stock);
-            return "📦 Will add {$formattedStockQty} {$product->uom_stock} to stock (1 {$product->uom_purchase} = {$formattedConversion} {$product->uom_stock})";
+            $formattedConversion = static::formatNumber((float) $product->conversion_purchase_to_stock);
+            return "📦 Akan tambah {$formattedStockQty} {$product->uom_stock} ke stok (1 {$product->uom_purchase} = {$formattedConversion} {$product->uom_stock})";
         }
 
-        return 'Enter quantity received in this delivery';
+        return 'Masukkan jumlah yang diterima dalam pengiriman ini';
     }
 
     /**

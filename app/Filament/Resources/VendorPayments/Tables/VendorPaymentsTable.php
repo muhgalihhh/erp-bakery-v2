@@ -23,48 +23,55 @@ class VendorPaymentsTable
     return $table
       ->columns([
         TextColumn::make('payment_number')
-          ->label('Payment No.')
+          ->label('No. Pembayaran')
           ->searchable()
           ->sortable()
           ->copyable()
-          ->copyMessage('Payment number copied!')
+          ->copyMessage('Nomor pembayaran disalin!')
           ->weight(FontWeight::Bold)
           ->color('primary'),
 
         TextColumn::make('vendor.name')
-          ->label('Vendor')
+          ->label('Supplier')
           ->searchable()
           ->sortable()
-          ->description(fn($record) => $record->vendor?->phone ?? 'No phone'),
+          ->description(fn($record) => $record->vendor?->phone ?? 'Tidak ada telepon'),
 
         TextColumn::make('purchaseOrder.po_number')
-          ->label('PO Reference')
+          ->label('Ref. PO')
           ->sortable()
           ->searchable()
-          ->placeholder('Not linked to PO')
+          ->placeholder('Tidak terkait PO')
           ->color('info'),
 
         TextColumn::make('payment_date')
-          ->label('Payment Date')
+          ->label('Tgl Bayar')
           ->date('d M Y')
           ->sortable()
           ->searchable(),
 
         TextColumn::make('amount')
-          ->label('Amount')
+          ->label('Jumlah')
           ->money('IDR')
           ->sortable()
           ->formatStateUsing(function ($state) {
-            $formatted = number_format($state, 2, '.', ',');
+            $formatted = number_format((float) $state, 2, '.', ',');
             $cleaned = rtrim(rtrim($formatted, '0'), '.');
             return 'Rp ' . $cleaned;
           })
           ->weight(FontWeight::Bold),
 
         TextColumn::make('payment_method')
-          ->label('Method')
+          ->label('Metode')
           ->badge()
-          ->formatStateUsing(fn($state) => ucwords(str_replace('_', ' ', $state)))
+          ->formatStateUsing(fn($state) => match ($state) {
+            'cash' => 'Tunai',
+            'bank_transfer' => 'Transfer Bank',
+            'check' => 'Cek',
+            'giro' => 'Giro',
+            'other' => 'Lainnya',
+            default => ucwords(str_replace('_', ' ', $state)),
+          })
           ->color(fn(string $state): string => match ($state) {
             VendorPayment::METHOD_CASH => 'success',
             VendorPayment::METHOD_BANK_TRANSFER => 'info',
@@ -75,26 +82,31 @@ class VendorPaymentsTable
           }),
 
         TextColumn::make('reference_number')
-          ->label('Reference')
+          ->label('No. Referensi')
           ->searchable()
-          ->placeholder('No reference')
+          ->placeholder('Tidak ada referensi')
           ->toggleable(isToggledHiddenByDefault: true),
 
         TextColumn::make('bank_account')
-          ->label('Bank Account')
+          ->label('Rekening Bank')
           ->searchable()
           ->placeholder('N/A')
           ->toggleable(isToggledHiddenByDefault: true),
 
         TextColumn::make('paidBy.name')
-          ->label('Paid By')
+          ->label('Dibayar Oleh')
           ->sortable()
           ->toggleable(isToggledHiddenByDefault: true),
 
         TextColumn::make('status')
           ->label('Status')
           ->badge()
-          ->formatStateUsing(fn($state) => ucfirst($state))
+          ->formatStateUsing(fn($state) => match ($state) {
+            'draft' => 'Draft',
+            'confirmed' => 'Dikonfirmasi',
+            'cancelled' => 'Dibatalkan',
+            default => ucfirst($state),
+          })
           ->color(fn(string $state): string => match ($state) {
             VendorPayment::STATUS_DRAFT => 'warning',
             VendorPayment::STATUS_CONFIRMED => 'success',
@@ -104,13 +116,13 @@ class VendorPaymentsTable
           ->sortable(),
 
         TextColumn::make('created_at')
-          ->label('Created')
+          ->label('Dibuat')
           ->dateTime('d M Y H:i')
           ->sortable()
           ->toggleable(isToggledHiddenByDefault: true),
 
         TextColumn::make('createdBy.name')
-          ->label('Created By')
+          ->label('Dibuat Oleh')
           ->sortable()
           ->toggleable(isToggledHiddenByDefault: true),
       ])
@@ -120,26 +132,26 @@ class VendorPaymentsTable
           ->label('Status')
           ->options([
             VendorPayment::STATUS_DRAFT => 'Draft',
-            VendorPayment::STATUS_CONFIRMED => 'Confirmed',
-            VendorPayment::STATUS_CANCELLED => 'Cancelled',
+            VendorPayment::STATUS_CONFIRMED => 'Dikonfirmasi',
+            VendorPayment::STATUS_CANCELLED => 'Dibatalkan',
           ])
           ->multiple()
           ->searchable(),
 
         SelectFilter::make('payment_method')
-          ->label('Payment Method')
+          ->label('Metode Pembayaran')
           ->options([
-            VendorPayment::METHOD_CASH => 'Cash',
-            VendorPayment::METHOD_BANK_TRANSFER => 'Bank Transfer',
-            VendorPayment::METHOD_CHECK => 'Check',
+            VendorPayment::METHOD_CASH => 'Tunai',
+            VendorPayment::METHOD_BANK_TRANSFER => 'Transfer Bank',
+            VendorPayment::METHOD_CHECK => 'Cek',
             VendorPayment::METHOD_GIRO => 'Giro',
-            VendorPayment::METHOD_OTHER => 'Other',
+            VendorPayment::METHOD_OTHER => 'Lainnya',
           ])
           ->multiple()
           ->searchable(),
 
         SelectFilter::make('vendor_id')
-          ->label('Vendor')
+          ->label('Supplier')
           ->relationship('vendor', 'name')
           ->searchable()
           ->preload(),
@@ -147,11 +159,11 @@ class VendorPaymentsTable
         Filter::make('payment_date')
           ->form([
             DatePicker::make('payment_from')
-              ->label('Payment From')
-              ->placeholder('Select start date'),
+              ->label('Dari Tanggal')
+              ->placeholder('Pilih tanggal mulai'),
             DatePicker::make('payment_until')
-              ->label('Payment Until')
-              ->placeholder('Select end date'),
+              ->label('Sampai Tanggal')
+              ->placeholder('Pilih tanggal akhir'),
           ])
           ->query(function (Builder $query, array $data): Builder {
             return $query
@@ -168,11 +180,11 @@ class VendorPaymentsTable
             $indicators = [];
 
             if ($data['payment_from'] ?? null) {
-              $indicators[] = 'Payment from ' . \Carbon\Carbon::parse($data['payment_from'])->format('d M Y');
+              $indicators[] = 'Pembayaran dari ' . \Carbon\Carbon::parse($data['payment_from'])->format('d M Y');
             }
 
             if ($data['payment_until'] ?? null) {
-              $indicators[] = 'Payment until ' . \Carbon\Carbon::parse($data['payment_until'])->format('d M Y');
+              $indicators[] = 'Pembayaran sampai ' . \Carbon\Carbon::parse($data['payment_until'])->format('d M Y');
             }
 
             return $indicators;
@@ -180,23 +192,25 @@ class VendorPaymentsTable
       ])
       ->actions([
         ViewAction::make()
+          ->label('Lihat')
           ->icon('heroicon-o-eye'),
 
         EditAction::make()
+          ->label('Ubah')
           ->icon('heroicon-o-pencil')
           ->visible(fn(VendorPayment $record) => $record->isDraft()),
 
         Action::make('confirm')
-          ->label('Confirm')
+          ->label('Konfirmasi')
           ->icon('heroicon-o-check-circle')
           ->color('success')
           ->requiresConfirmation()
-          ->modalHeading('Confirm Payment')
+          ->modalHeading('Konfirmasi Pembayaran')
           ->modalDescription(
             fn(VendorPayment $record) =>
-            "Are you sure you want to confirm payment {$record->payment_number}? This action cannot be undone."
+            "Yakin ingin konfirmasi pembayaran {$record->payment_number}? Tindakan ini tidak bisa dibatalkan."
           )
-          ->modalSubmitActionLabel('Yes, Confirm Payment')
+          ->modalSubmitActionLabel('Ya, Konfirmasi Pembayaran')
           ->action(function (VendorPayment $record) {
             $record->confirm();
           })
@@ -204,21 +218,21 @@ class VendorPaymentsTable
           ->successNotification(
             \Filament\Notifications\Notification::make()
               ->success()
-              ->title('Payment Confirmed')
-              ->body('The payment has been confirmed successfully.')
+              ->title('Pembayaran Dikonfirmasi')
+              ->body('Pembayaran berhasil dikonfirmasi.')
           ),
 
         Action::make('cancel')
-          ->label('Cancel')
+          ->label('Batalkan')
           ->icon('heroicon-o-x-circle')
           ->color('danger')
           ->requiresConfirmation()
-          ->modalHeading('Cancel Payment')
+          ->modalHeading('Batalkan Pembayaran')
           ->modalDescription(
             fn(VendorPayment $record) =>
-            "Are you sure you want to cancel payment {$record->payment_number}? This action cannot be undone."
+            "Yakin ingin batalkan pembayaran {$record->payment_number}? Tindakan ini tidak bisa dibatalkan."
           )
-          ->modalSubmitActionLabel('Yes, Cancel Payment')
+          ->modalSubmitActionLabel('Ya, Batalkan Pembayaran')
           ->action(function (VendorPayment $record) {
             $record->cancel();
           })
@@ -226,18 +240,19 @@ class VendorPaymentsTable
           ->successNotification(
             \Filament\Notifications\Notification::make()
               ->success()
-              ->title('Payment Cancelled')
-              ->body('The payment has been cancelled.')
+              ->title('Pembayaran Dibatalkan')
+              ->body('Pembayaran berhasil dibatalkan.')
           ),
       ])
       ->bulkActions([
         BulkActionGroup::make([
           DeleteBulkAction::make()
+            ->label('Hapus')
             ->requiresConfirmation(),
         ]),
       ])
-      ->emptyStateHeading('No payments yet')
-      ->emptyStateDescription('Create your first vendor payment to get started.')
+      ->emptyStateHeading('Belum ada pembayaran')
+      ->emptyStateDescription('Buat pembayaran supplier pertama untuk memulai.')
       ->emptyStateIcon('heroicon-o-banknotes');
   }
 }

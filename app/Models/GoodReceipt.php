@@ -100,6 +100,21 @@ class GoodReceipt extends Model
                 // Increase stock with auto-conversion from purchase UOM to stock UOM
                 // e.g., 10 Sak → 10 × 25 = 250 Kg
                 $item->product->increaseStock($acceptedQty, 'purchase');
+
+                // **TRACK STOCK MOVEMENT**
+                $stockQtyInStockUom = $acceptedQty * $item->product->conversion_purchase_to_stock;
+
+                \App\Models\StockMovement::create([
+                    'type' => \App\Models\StockMovement::TYPE_IN,
+                    'reference_type' => self::class,
+                    'reference_id' => $this->id,
+                    'reference_number' => $this->receipt_number,
+                    'product_id' => $item->product_id,
+                    'quantity' => $stockQtyInStockUom, // Dalam stock UOM (kg, pcs, dll)
+                    'uom' => $item->product->uom_stock,
+                    'balance_after' => $item->product->fresh()->current_stock,
+                    'notes' => "Penerimaan barang dari PO {$this->purchaseOrder->po_number}",
+                ]);
             }
         }
 

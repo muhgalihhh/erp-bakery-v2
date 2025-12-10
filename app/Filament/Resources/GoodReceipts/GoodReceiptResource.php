@@ -28,15 +28,15 @@ class GoodReceiptResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'receipt_number';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Pembelian';
-
-    protected static ?int $navigationSort = 3;
-
     protected static ?string $navigationLabel = 'Terima Barang';
 
     protected static ?string $modelLabel = 'Penerimaan Barang';
 
     protected static ?string $pluralModelLabel = 'Penerimaan Barang';
+
+    protected static string|UnitEnum|null $navigationGroup = '🛒 Pembelian';
+
+    protected static ?int $navigationSort = 3;
 
     public static function form(Schema $schema): Schema
     {

@@ -31,7 +31,7 @@ class VendorPaymentResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Pembayaran Supplier';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Pembelian';
+    protected static string|UnitEnum|null $navigationGroup = '🛒 Pembelian';
 
     protected static ?int $navigationSort = 4;
 

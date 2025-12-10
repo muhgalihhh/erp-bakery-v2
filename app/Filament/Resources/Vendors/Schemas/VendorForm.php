@@ -14,86 +14,89 @@ class VendorForm
     {
         return $schema
             ->components([
-                Fieldset::make('Basic Information')
+                Fieldset::make('Informasi Dasar')
                     ->schema([
                         TextInput::make('vendor_code')
-                            ->label('Vendor Code')
+                            ->label('Kode Supplier')
                             ->required()
                             ->unique(ignoreRecord: true)
                             ->placeholder('VND-001')
-                            ->helperText('Unique vendor code'),
+                            ->helperText('Kode unik untuk supplier ini'),
 
                         TextInput::make('name')
-                            ->label('Vendor Name')
+                            ->label('Nama Supplier')
                             ->required()
-                            ->placeholder('PT Sumber Roti Sejahtera')
+                            ->placeholder('PT Sumber Tepung Sejahtera')
                             ->columnSpanFull(),
 
                         TextInput::make('contact_person')
-                            ->label('Contact Person')
-                            ->placeholder('Budi Santoso'),
+                            ->label('Kontak Person')
+                            ->placeholder('Budi Santoso')
+                            ->helperText('Nama orang yang dihubungi'),
 
                         TextInput::make('phone')
-                            ->label('Phone Number')
+                            ->label('No. Telepon')
                             ->tel()
                             ->placeholder('08123456789'),
 
                         TextInput::make('email')
                             ->label('Email')
                             ->email()
-                            ->placeholder('vendor@example.com'),
+                            ->placeholder('supplier@example.com'),
 
                         Textarea::make('address')
-                            ->label('Address')
+                            ->label('Alamat')
                             ->rows(3)
                             ->placeholder('Jl. Raya Industri No. 123, Jakarta')
                             ->columnSpanFull(),
                     ])
                     ->columns(3),
 
-                Fieldset::make('Tax & Payment')
+                Fieldset::make('Pajak & Pembayaran')
                     ->schema([
                         TextInput::make('tax_id')
-                            ->label('Tax ID / NPWP')
-                            ->placeholder('01.234.567.8-901.000'),
+                            ->label('NPWP')
+                            ->placeholder('01.234.567.8-901.000')
+                            ->helperText('Nomor Pokok Wajib Pajak (opsional)'),
 
                         TextInput::make('payment_terms_days')
-                            ->label('Payment Terms')
+                            ->label('Termin Pembayaran')
                             ->numeric()
                             ->default(30)
-                            ->suffix('days')
-                            ->helperText('NET payment terms')
+                            ->suffix('hari')
+                            ->helperText('Contoh: 7 hari = NET 7, 30 hari = NET 30')
                             ->required(),
                     ])
                     ->columns(2),
 
-                Fieldset::make('Bank Information')
+                Fieldset::make('Informasi Bank')
                     ->schema([
                         TextInput::make('bank_name')
-                            ->label('Bank Name')
+                            ->label('Nama Bank')
                             ->placeholder('Bank Mandiri'),
 
                         TextInput::make('bank_account_number')
-                            ->label('Account Number')
+                            ->label('No. Rekening')
                             ->placeholder('1234567890'),
 
                         TextInput::make('bank_account_name')
-                            ->label('Account Holder')
-                            ->placeholder('PT Sumber Roti Sejahtera'),
+                            ->label('Atas Nama')
+                            ->placeholder('PT Sumber Tepung Sejahtera')
+                            ->helperText('Nama pemilik rekening'),
                     ])
                     ->columns(3),
 
-                Fieldset::make('Status & Notes')
+                Fieldset::make('Status & Catatan')
                     ->schema([
                         Toggle::make('is_active')
-                            ->label('Active Vendor')
+                            ->label('Supplier Aktif')
                             ->default(true)
-                            ->helperText('Only active vendors in PO'),
+                            ->helperText('Hanya supplier aktif yang muncul di PO'),
 
                         Textarea::make('notes')
-                            ->label('Internal Notes')
+                            ->label('Catatan Internal')
                             ->rows(3)
-                            ->placeholder('Notes about vendor...')
+                            ->placeholder('Catatan tentang supplier ini...')
                             ->columnSpanFull(),
                     ]),
             ]);
