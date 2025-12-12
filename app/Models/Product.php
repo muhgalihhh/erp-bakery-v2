@@ -221,4 +221,97 @@ class Product extends Model
     {
         return $this->current_stock <= $this->reorder_point;
     }
+
+    /**
+     * Relationship: Bill of Materials (BOM) untuk produk ini
+     */
+    public function bomHeaders(): HasMany
+    {
+        return $this->hasMany(BomHeader::class, 'product_id');
+    }
+
+    /**
+     * Get active/default BOM for this product
+     */
+    public function getActiveBom()
+    {
+        return $this->bomHeaders()
+            ->where('is_active', true)
+            ->where('is_default', true)
+            ->first();
+    }
+
+    /**
+     * Calculate standard cost from active BOM
+     * Menghitung HPP berdasarkan resep/formula produksi
+     */
+    public function calculateStandardCostFromBom(): float
+    {
+        $bom = $this->getActiveBom();
+
+        if (!$bom) {
+            // Jika tidak ada BOM, gunakan purchase_price atau 0
+            return $this->purchase_price ?? 0;
+        }
+
+        return $bom->calculateCost();
+    }
+
+    /**
+     * Update standard cost from BOM
+     * Return true jika berhasil update, false jika tidak ada perubahan
+     */
+    public function updateStandardCostFromBom(): bool
+    {
+        $calculatedCost = $this->calculateStandardCostFromBom();
+
+        if ($calculatedCost > 0) {
+            $this->update(['standard_cost' => $calculatedCost]);
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Ensure product has standard cost
+     * Untuk produk yang belum ada standard_cost, auto-fill dengan logic:
+     * - Finished Goods: Calculate from BOM
+     * - Raw Material: Use purchase_price
+     * - Packaging: Use purchase_price
+     */
+    public function ensureStandardCost(): void
+    {
+        // Skip jika sudah ada standard_cost
+        if ($this->standard_cost && $this->standard_cost > 0) {
+            return;
+        }
+
+        switch ($this->type) {
+            case 'finished_goods':
+                // Coba hitung dari BOM
+                $costFromBom = $this->calculateStandardCostFromBom();
+                if ($costFromBom > 0) {
+                    $this->update(['standard_cost' => $costFromBom]);
+                } elseif ($this->selling_price > 0) {
+                    // Fallback: estimasi 60% dari selling price
+                    $this->update(['standard_cost' => $this->selling_price * 0.6]);
+                }
+                break;
+
+            case 'raw_material':
+            case 'packaging':
+                // Gunakan purchase_price
+                if ($this->purchase_price > 0) {
+                    $this->update(['standard_cost' => $this->purchase_price]);
+                }
+                break;
+
+            default:
+                // Untuk type lain, gunakan purchase_price jika ada
+                if ($this->purchase_price > 0) {
+                    $this->update(['standard_cost' => $this->purchase_price]);
+                }
+        }
+    }
 }
