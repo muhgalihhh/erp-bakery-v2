@@ -48,14 +48,21 @@ class SalesOrderObserver
             $salesOrder->updated_by = Auth::id();
         }
 
-        // Detect status change to CONFIRMED
+        // Detect status change to CONFIRMED (only for non-POS orders)
+        // POS orders are already COMPLETED immediately and handled by PosService
         if ($salesOrder->isDirty('status') && $salesOrder->status === SalesOrder::STATUS_CONFIRMED) {
-            $this->handleConfirmed($salesOrder);
+            // Only process if NOT coming from POS (POS uses order_type = 'pos')
+            if ($salesOrder->order_type !== 'pos') {
+                $this->handleConfirmed($salesOrder);
+            }
         }
 
-        // Detect status change to COMPLETED
+        // Detect status change to COMPLETED (only for non-POS orders)
         if ($salesOrder->isDirty('status') && $salesOrder->status === SalesOrder::STATUS_COMPLETED) {
-            $this->handleCompleted($salesOrder);
+            // Only process if NOT coming from POS (POS already handles this in PosService)
+            if ($salesOrder->order_type !== 'pos') {
+                $this->handleCompleted($salesOrder);
+            }
         }
 
         // Detect status change to CANCELLED

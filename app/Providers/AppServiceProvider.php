@@ -18,6 +18,8 @@ use App\Observers\SalesOrderObserver;
 use App\Policies\UserPolicy;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
+use Livewire\Livewire;
+use App\Livewire\Pos\PointOfSale;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -45,6 +47,9 @@ class AppServiceProvider extends ServiceProvider
     {
         // Register policies
         Gate::policy(User::class, UserPolicy::class);
+
+        // Register Livewire components manually
+        Livewire::component('pos.point-of-sale', PointOfSale::class);
 
         // Register observers for auto-generating unique codes
         PurchaseOrder::observe(PurchaseOrderObserver::class);

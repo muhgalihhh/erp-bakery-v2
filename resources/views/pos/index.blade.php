@@ -37,7 +37,7 @@
     </div>
 
     <div class="min-h-screen bg-gray-50">
-        <livewire:pos.point-of-sale />
+        @livewire('pos.point-of-sale')
     </div>
 
     @livewireScripts
