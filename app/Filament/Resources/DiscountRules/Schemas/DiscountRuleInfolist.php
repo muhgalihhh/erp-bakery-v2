@@ -5,6 +5,7 @@ namespace App\Filament\Resources\DiscountRules\Schemas;
 use App\Models\DiscountRule;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Components\KeyValueEntry;
 use Filament\Schemas\Schema;
 
 class DiscountRuleInfolist
@@ -33,8 +34,10 @@ class DiscountRuleInfolist
                     ->boolean(),
                 TextEntry::make('conditions')
                     ->placeholder('-')
+                    ->formatStateUsing(fn($state) => is_array($state) ? json_encode($state, JSON_PRETTY_PRINT) : ($state ?? '-'))
                     ->columnSpanFull(),
                 TextEntry::make('actions')
+                    ->formatStateUsing(fn($state) => is_array($state) ? json_encode($state, JSON_PRETTY_PRINT) : ($state ?? '-'))
                     ->columnSpanFull(),
                 TextEntry::make('usage_limit')
                     ->numeric()
@@ -60,7 +63,7 @@ class DiscountRuleInfolist
                     ->placeholder('-'),
                 TextEntry::make('deleted_at')
                     ->dateTime()
-                    ->visible(fn (DiscountRule $record): bool => $record->trashed()),
+                    ->visible(fn(DiscountRule $record): bool => $record->trashed()),
             ]);
     }
 }

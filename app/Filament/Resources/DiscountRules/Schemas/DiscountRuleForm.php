@@ -7,7 +7,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Toggle;
-use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\DateTimePicker;
 use App\Models\CustomerTier;
 use App\Models\Product;
 
@@ -52,16 +52,18 @@ class DiscountRuleForm
                 ->columns(2)
                 ->columnSpan(2)
                 ->schema([
-                    DatePicker::make('valid_from')
+                    DateTimePicker::make('start_date')
                         ->label('Mulai Berlaku')
                         ->required()
                         ->default(now())
-                        ->helperText('Tanggal mulai promosi berlaku')
+                        ->helperText('Tanggal & waktu mulai promosi berlaku')
                         ->columnSpan(1),
 
-                    DatePicker::make('valid_to')
+                    DateTimePicker::make('end_date')
                         ->label('Berakhir')
-                        ->helperText('Kosongkan jika tidak ada batas waktu')
+                        ->required()
+                        ->default(now()->addMonth())
+                        ->helperText('Tanggal & waktu berakhir promosi')
                         ->columnSpan(1),
                 ]),
 
@@ -202,14 +204,15 @@ class DiscountRuleForm
                         ->required()
                         ->numeric()
                         ->placeholder('20')
-                        ->helperText(fn ($get) =>
+                        ->helperText(
+                            fn($get) =>
                             $get('action_discount_type') === 'percentage'
-                                ? 'Masukkan angka persentase (contoh: 20 untuk 20%)'
-                                : 'Masukkan nominal rupiah (contoh: 50000)'
+                            ? 'Masukkan angka persentase (contoh: 20 untuk 20%)'
+                            : 'Masukkan nominal rupiah (contoh: 50000)'
                         )
-                        ->prefix(fn ($get) => $get('action_discount_type') === 'percentage' ? '' : 'Rp')
-                        ->suffix(fn ($get) => $get('action_discount_type') === 'percentage' ? '%' : '')
-                        ->visible(fn ($get) => $get('action_discount_type') !== 'free_item')
+                        ->prefix(fn($get) => $get('action_discount_type') === 'percentage' ? '' : 'Rp')
+                        ->suffix(fn($get) => $get('action_discount_type') === 'percentage' ? '%' : '')
+                        ->visible(fn($get) => $get('action_discount_type') !== 'free_item')
                         ->columnSpan(1),
 
                     TextInput::make('action_max_discount')
@@ -218,7 +221,7 @@ class DiscountRuleForm
                         ->prefix('Rp')
                         ->placeholder('100000')
                         ->helperText('Maksimal potongan dalam rupiah (untuk batasi diskon %)')
-                        ->visible(fn ($get) => $get('action_discount_type') === 'percentage')
+                        ->visible(fn($get) => $get('action_discount_type') === 'percentage')
                         ->columnSpan(1),
 
                     Select::make('action_free_product')
@@ -232,7 +235,7 @@ class DiscountRuleForm
                         })
                         ->placeholder('Pilih produk yang akan gratis')
                         ->helperText('Produk yang akan diberikan gratis')
-                        ->visible(fn ($get) => $get('action_discount_type') === 'free_item')
+                        ->visible(fn($get) => $get('action_discount_type') === 'free_item')
                         ->columnSpan(2),
 
                     TextInput::make('action_free_quantity')
@@ -242,7 +245,7 @@ class DiscountRuleForm
                         ->minValue(1)
                         ->placeholder('1')
                         ->helperText('Berapa banyak produk gratis yang diberikan')
-                        ->visible(fn ($get) => $get('action_discount_type') === 'free_item')
+                        ->visible(fn($get) => $get('action_discount_type') === 'free_item')
                         ->columnSpan(1),
 
                     Select::make('action_apply_to')

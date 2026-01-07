@@ -2,10 +2,11 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\LandingController;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// Landing Page Routes
+Route::get('/', [LandingController::class, 'index'])->name('landing.index');
+Route::get('/products', [LandingController::class, 'products'])->name('landing.products');
 
 // Standalone POS route (decoupled from Filament)
 // This is an alternative to accessing POS via Filament admin panel
@@ -37,5 +38,5 @@ Route::get('/pos/fullscreen', function () {
         abort(403);
     }
 
-    return view('pos.index');
+    return view('pos.fullscreen');
 })->name('pos.fullscreen');

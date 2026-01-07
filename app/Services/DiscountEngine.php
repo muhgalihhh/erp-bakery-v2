@@ -20,12 +20,12 @@ class DiscountEngine
     // Get all active discount rules
     $rules = DiscountRule::where('is_active', true)
       ->where(function ($query) {
-        $query->whereNull('valid_from')
-          ->orWhere('valid_from', '<=', now());
+        $query->whereNull('start_date')
+          ->orWhere('start_date', '<=', now());
       })
       ->where(function ($query) {
-        $query->whereNull('valid_to')
-          ->orWhere('valid_to', '>=', now());
+        $query->whereNull('end_date')
+          ->orWhere('end_date', '>=', now());
       })
       ->orderBy('priority', 'asc')
       ->get();
@@ -172,7 +172,8 @@ class DiscountEngine
       }
 
       $customer = Customer::find($cartData['customer_id']);
-      if (!$customer || !in_array($customer->customer_tier_id, $conditions['customer_tier_codes'])) {
+      // customer_tier_codes stores tier IDs from the form (Select with tier IDs)
+      if (!$customer || !$customer->customer_tier_id || !in_array($customer->customer_tier_id, $conditions['customer_tier_codes'])) {
         Log::info("Discount {$rule->code}: Customer tier not eligible");
         return false;
       }
